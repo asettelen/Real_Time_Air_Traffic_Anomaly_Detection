@@ -70,66 +70,66 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
                                 cat = c
                             except:
                                 pass
-                            #if c == 48:
-                            src= 'Nan'
-                            tid = 'NaN'
-                            ts ='Nan'
-                            sac = 'NaN'
-                            sic = 'NaN'
-                            tod = 'NaN'
-                            tn = 'NaN'
-                            theta = 'NaN'
-                            rho = 'NaN'
-                            fl = 'NaN'
-                            cgs = 'NaN'
-                            chdg = 'NaN'
-                            try:
-                                src=mac_addr(eth.src)
-                            except:
+                            if c == 48:
+                                src= 'Nan'
+                                tid = 'NaN'
+                                ts ='Nan'
+                                sac = 'NaN'
+                                sic = 'NaN'
+                                tod = 'NaN'
+                                tn = 'NaN'
+                                theta = 'NaN'
+                                rho = 'NaN'
+                                fl = 'NaN'
+                                cgs = 'NaN'
+                                chdg = 'NaN'
+                                try:
+                                    src=mac_addr(eth.src)
+                                except:
+                                    pass
+                                try:
+                                    tid = parsed[i]['I240']['TId']['val']
+                                except:
+                                    pass
+                                try:
+                                    sac = parsed[i]['I010']['SAC']['val']
+                                except:
+                                    pass
+                                try:
+                                    sic = parsed[i]['I010']['SIC']['val']
+                                except:
+                                    pass
+                                try:
+                                    tod = parsed[i]['I140']['ToD']['val']
+                                except:
+                                    pass
+                                try:
+                                    tn = parsed[i]['I161']['Tn']['val']
+                                except:
+                                    pass
+                                try:
+                                    theta = parsed[i]['I040']['THETA']['val']
+                                except:
+                                    pass
+                                try:
+                                    rho = parsed[i]['I040']['RHO']['val']
+                                except:
+                                    pass
+                                try:
+                                    fl = parsed[i]['I090']['FL']['val']
+                                except:
+                                    pass
+                                try:
+                                    cgs = parsed[i]['I200']['CGS']['val']
+                                except:
+                                    pass
+                                try:
+                                    chdg = parsed[i]['I200']['CHdg']['val']
+                                except:
+                                    pass
+                                yield str(src)+','+str(cat)+','+str(tid)+','+str(ts)+','+dst+','+str(sac)+','+str(sic)+','+str(tod)+','+str(tn)+','+str(theta)+','+str(rho)+','+str(fl)+','+str(cgs)+','+str(chdg)+'\n'
+                            else:
                                 pass
-                            try:
-                                tid = parsed[i]['I240']['TId']['val']
-                            except:
-                                pass
-                            try:
-                                sac = parsed[i]['I010']['SAC']['val']
-                            except:
-                                pass
-                            try:
-                                sic = parsed[i]['I010']['SIC']['val']
-                            except:
-                                pass
-                            try:
-                                tod = parsed[i]['I140']['ToD']['val']
-                            except:
-                                pass
-                            try:
-                                tn = parsed[i]['I161']['Tn']['val']
-                            except:
-                                pass
-                            try:
-                                theta = parsed[i]['I040']['THETA']['val']
-                            except:
-                                pass
-                            try:
-                                rho = parsed[i]['I040']['RHO']['val']
-                            except:
-                                pass
-                            try:
-                                fl = parsed[i]['I090']['FL']['val']
-                            except:
-                                pass
-                            try:
-                                cgs = parsed[i]['I200']['CGS']['val']
-                            except:
-                                pass
-                            try:
-                                chdg = parsed[i]['I200']['CHdg']['val']
-                            except:
-                                pass
-                            yield str(src)+','+str(cat)+','+str(tid)+','+str(ts)+','+dst+','+str(sac)+','+str(sic)+','+str(tod)+','+str(tn)+','+str(theta)+','+str(rho)+','+str(fl)+','+str(cgs)+','+str(chdg)+'\n'
-                            #else:
-                            #    pass
                             i = i + 1
                     except:
                         pass
