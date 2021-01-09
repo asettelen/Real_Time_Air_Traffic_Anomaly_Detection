@@ -14,7 +14,7 @@ import socket
 
 app = Flask(__name__)
 
-DATACENTER2_ADDRESS = "192.168.37.35:50005"
+DATACENTER2_ADDRESS = ("192.168.37.35",50005)
 
 LOG=""
 NB_PARSE_ERRORS=0
