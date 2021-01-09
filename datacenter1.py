@@ -80,7 +80,7 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
                         i = 0
                         while i < l:
                             cat = parsed[i]['category']
-                            src= 'Nan'
+                            src= 'NaN'
                             tid = 'NaN'
                             sac = 'NaN'
                             sic = 'NaN'
