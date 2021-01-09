@@ -31,7 +31,7 @@ def stream_from_pcap_directly(socket, file="2019-12-09-1751.pcap"):
     global NB_PARSE_ERRORS
     global LOG
     fichier = file
-    f = open("/part1/" + fichier, "rb")
+    f = open("/add/" + fichier, "rb")
     pcap = dpkt.pcap.Reader(f)
     for ts, buf in pcap:
         eth = dpkt.ethernet.Ethernet(buf)
