@@ -10,6 +10,7 @@ import asterix
 from time import sleep
 from flask import Flask, jsonify, request, send_file, Response, stream_with_context
 import sqlite3
+import socket
 
 app = Flask(__name__)
 
@@ -20,7 +21,12 @@ NB_PARSE_ERRORS=0
 
 @app.route("/log")
 def log():
-    return LOG+"nombre d'erreurs parse:"+str(NB_PARSE_ERRORS)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect(DATACENTER2_ADDRESS)
+    sock.sendall(b'LOG:')
+    lg = sock.recv(1024)
+    sock.close()
+    return LOG+"nombre d'erreurs parse:"+str(NB_PARSE_ERRORS)+'\n'+lg
 
 
 @app.route("/")
@@ -52,6 +58,8 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
     stopD = datetime.strptime(stopDate, "%Y-%m-%d-%H:%M:%S")
     files = query_from_table_files(startD,stopD)
     def generate_csv_for_all_mac(files):
+        global NB_PARSE_ERRORS
+        global LOG
         for file in files:
             fichier=file
             try:
@@ -137,7 +145,15 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
                         pass
                 f.close()
             except:
-                yield requests.get(url="http://%s/stream/%s"%(DATACENTER2_ADDRESS,fichier),stream=True).text
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.connect(DATACENTER2_ADDRESS)
+                sock.sendall(b'FILE:%s'%(file))
+                while True:
+                    line = sock.recv(1024)
+                    if line != "END":
+                        yield line+b'\n'
+                    else:
+                        break
     return Response(stream_with_context(generate_csv_for_all_mac(files)), mimetype="text")
 
 
