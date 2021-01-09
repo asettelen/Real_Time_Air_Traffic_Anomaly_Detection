@@ -154,6 +154,7 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
                         yield line+b'\n'
                     else:
                         break
+                sock.close()
     return Response(stream_with_context(generate_csv_for_all_mac(files)), mimetype="text")
 
 

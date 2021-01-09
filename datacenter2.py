@@ -23,8 +23,9 @@ def mac_addr(address):
 LOG=""
 NB_PARSE_ERRORS=0
 
-def log():
-    return LOG+"nombre d'erreurs parse:"+str(NB_PARSE_ERRORS)+'\n'
+def log(socket):
+    socket.sendall(b"%s"%(LOG+"nombre d'erreurs parse:"+str(NB_PARSE_ERRORS)+"\n"))
+    socket.close()
 
 def stream_from_pcap_directly(socket, file="2019-12-09-1751.pcap"):
     global NB_PARSE_ERRORS
@@ -130,10 +131,11 @@ if __name__=="__main__":
             if 'FILE:' in file_name:
                 file_name = file_name.split(":")[1]
                 print("Delivering content from file: %s"%(file_name))
-                stream_from_pcap_directly(datacenter2_socket, file_name)
+                th = Thread(target=stream_from_pcap_directly, args=(datacenter2_socket, file_name))
+                th.start()
                 print("--------------------------------")
             elif 'LOG:' in file_name:
                 print("Delivering log")
-                datacenter2_socket.sendall(b'%s'%(log()))
-                datacenter2_socket.close()
+                th = Thread(target=log, args=(datacenter2_socket))
+                th.start()
                 print("--------------------------------")
