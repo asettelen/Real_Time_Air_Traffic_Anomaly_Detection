@@ -60,12 +60,18 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
     def generate_csv_for_all_mac(files):
         global NB_PARSE_ERRORS
         global LOG
+        tsOld = 0
         for file in files:
             fichier=file
             try:
                 f=open("/part1/"+fichier,"rb")
                 pcap = dpkt.pcap.Reader(f)
                 for ts, buf in pcap:
+                    if tsOld==0:
+                        tsOld=ts
+                    else:
+                        sleep(ts-tsOld)
+                        tsOld=ts
                     eth = dpkt.ethernet.Ethernet(buf)
                     dst = mac_addr(eth.dst)
                     if dst == '01:00:5e:50:10:c4':

@@ -30,10 +30,16 @@ def log(socket):
 def stream_from_pcap_directly(socket, file="2019-12-09-1751.pcap"):
     global NB_PARSE_ERRORS
     global LOG
+    tsOld = 0
     fichier = file
     f = open("/add/" + fichier, "rb")
     pcap = dpkt.pcap.Reader(f)
     for ts, buf in pcap:
+        if tsOld==0:
+            tsOld=ts
+        else:
+            sleep(ts-tsOld)
+            tsOld=ts
         eth = dpkt.ethernet.Ethernet(buf)
         dst = mac_addr(eth.dst)
         if dst == '01:00:5e:50:10:c4':
