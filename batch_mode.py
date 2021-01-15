@@ -179,6 +179,75 @@ def main_clean(rdd):
 #-----Fin Clean---------
 
 
+#Select specific plane on rdd
+def getPacketsByPlane(tid):
+    TID = '\'%' + tid + '%\'' 
+    QUERY = 'SELECT * FROM global_temp.traffic \
+            WHERE TID LIKE ' + str(TID)
+    #print(QUERY)
+    return spark.sql(QUERY).toPandas()
+
+#
+def dictRadarsByAvion(TID):
+    df_temp = getPacketsByPlane(TID)
+    list_radar = list(df_temp.groupby('DST').size().index)
+    dictRadar = {}
+    for dst in list_radar:
+        #dictRadar[dst] = filterByPlaneAndRadar(TID, dst) ##TOO MUCH TIME
+        dictRadar[dst] = df_temp[df_temp['DST'] == dst] 
+    return dictRadar
+
+import colorsys
+import random
+colorsys.hsv_to_rgb(359,100,100)
+def randomColor(i, m):
+    return rgb_to_hex(colorsys.hsv_to_rgb(float(i) / float(m), 1, 1))
+def rgb_to_hex(rgb):
+    rgbInt = (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
+    return '#%02x%02x%02x' % rgbInt
+
+def plotRadar(dictRadar, var=None):
+    num_png=0
+    if var == None:
+        for var in list(dictRadar[list(dictRadar.keys())[0]].columns):
+            i, m = 0, len(dictRadar.keys())
+            print("i : ",i)
+            print("len dictRadar.keys :",m)
+            try :
+                print(dictRadar)
+            except:
+                print("fail to print dictRadar")
+            for dst in dictRadar.keys():
+                plt.plot(dictRadar[dst]['TS'], dictRadar[dst][var], randomColor(i, m))
+                i = i + 1
+            plt.xlabel('time(s)')
+            plt.ylabel(var)
+            print("plot png n "+str(num_png)+"\n")
+            plt.savefig('test'+str(num_png)+'.png')
+            num_png+=1
+    else:
+        i, m = 0, len(dictRadar.keys())
+        for dst in dictRadar.keys():
+            plt.plot(dictRadar[dst]['TS'], dictRadar[dst][var], randomColor(i, m))
+            i = i + 1
+        plt.xlabel('time(s)')
+        plt.ylabel(var)
+        print("Try save plot as png - 2  \n")
+        plt.savefig('test'+str(num_png)+'.png')
+        num_png+=1
+        
+        
+def viz(dictRadar, TID):
+    print("Start function viz \n")
+    plotRadar(dictRadar)
+    
+    #sns.pairplot(data=getPacketsByPlane(TID), vars=['SAC', 'SIC', 'ToD', 'TN', 'THETA', 'RHO', 'FL', 'CGS', 'CHdg'])
+    #plt.show()
+    
+    #sns.heatmap(data=getPacketsByPlane(TID)[['SIC', 'ToD', 'TN', 'THETA', 'FL', 'CGS', 'CHdg']].corr(), annot = True, cmap = 'Reds')
+    #plt.show()
+
+
 def main():
     global traffic_df_explicit, trafficSchema, spark  
     print("-----Start Batch request------")
@@ -202,6 +271,11 @@ def main():
         
 
     traffic_df_explicit = spark.createDataFrame(spark.sparkContext.emptyRDD(),trafficSchema)
+    try :
+        print("traffic_df_explicit")
+        print(traffic_df_explicit[0])
+    except:
+        print("fail to print traffic_df_explicit")
     traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
 
     response = requests.get('http://192.168.37.142:50005/stream/2019-05-04-12:00:00/2019-05-04-16:00:00', stream = True)
@@ -223,7 +297,14 @@ def main():
         if not(i % 10):
             print(i)
             
-        if (i==10000): break 
+        if (i==100): 
+            break 
+    #getlistavion()
+    #viz(dictRadarsByAvion('JAF3ML'), 'JAF3ML')
+    print("try get pandas dataframe : ")
+    pandas=getPacketsByPlane("TOM97V")
+    print(pandas)
+    viz(dictRadarsByAvion('TOM97V'), 'TOM97V')
 
     
 
