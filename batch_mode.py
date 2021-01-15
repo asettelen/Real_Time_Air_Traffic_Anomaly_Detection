@@ -20,6 +20,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import requests
 from pyspark.sql.types import *
+import sys
 
 sc = pyspark.SparkContext(appName="Spark RDD")
 
@@ -211,19 +212,17 @@ def plotRadar(dictRadar, var=None):
     if var == None:
         for var in list(dictRadar[list(dictRadar.keys())[0]].columns):
             i, m = 0, len(dictRadar.keys())
-            print("i : ",i)
-            print("len dictRadar.keys :",m)
-            try :
-                print(dictRadar)
-            except:
-                print("fail to print dictRadar")
             for dst in dictRadar.keys():
                 plt.plot(dictRadar[dst]['TS'], dictRadar[dst][var], randomColor(i, m))
                 i = i + 1
             plt.xlabel('time(s)')
             plt.ylabel(var)
-            print("plot png n "+str(num_png)+"\n")
-            plt.savefig('test'+str(num_png)+'.png')
+            print("Saving plot n°"+str(num_png)+" as png\n")
+            plt.tight_layout()
+            #plt.draw()
+            #plt.show()
+            plt.savefig('test'+str(num_png)+'.png', format="PNG")
+            plt.clf()
             num_png+=1
     else:
         i, m = 0, len(dictRadar.keys())
@@ -232,8 +231,10 @@ def plotRadar(dictRadar, var=None):
             i = i + 1
         plt.xlabel('time(s)')
         plt.ylabel(var)
-        print("Try save plot as png - 2  \n")
-        plt.savefig('test'+str(num_png)+'.png')
+        print("Saving plot n°"+str(num_png)+" as png\n")
+        plt.draw()
+        plt.savefig('test'+str(num_png)+'.png', format="PNG")
+        plt.clf()
         num_png+=1
         
         
@@ -250,7 +251,9 @@ def viz(dictRadar, TID):
 
 def main():
     global traffic_df_explicit, trafficSchema, spark  
+    
     print("-----Start Batch request------")
+
     spark = pyspark.sql.SparkSession.builder.appName("Spark-Dataframe-SQL").getOrCreate()
 
     trafficSchema = StructType ( [StructField("SRC", StringType(), True),
@@ -269,19 +272,19 @@ def main():
                                     StructField("CHdg", DoubleType(), True),
                                 ] )
         
-
+    print("Create spark dataframe")
     traffic_df_explicit = spark.createDataFrame(spark.sparkContext.emptyRDD(),trafficSchema)
-    try :
-        print("traffic_df_explicit")
-        print(traffic_df_explicit[0])
-    except:
-        print("fail to print traffic_df_explicit")
     traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
 
+    id_plane=str(sys.argv[1])
+
+    print("Get visualization for the plane ",id_plane)
+
+    print("--Start get requests--")
     response = requests.get('http://192.168.37.142:50005/stream/2019-05-04-12:00:00/2019-05-04-16:00:00', stream = True)
 
-    print("Trying get reponse")
-
+    
+    
 
     i = 0
     list_aux = [] 
@@ -290,19 +293,19 @@ def main():
         #print(data.decode("UTF-8").split(","))
         list_aux.append(data.decode("UTF-8").split(","))
        
-        if not(i % 10000):
-            print(i)
+        if not(i % 1000):
+            print(i,"packets received")
             
-        if (i==100000): 
+        if (i==10000): 
+            print(i,"Packets received \n")
+            print("--End of get requests--")
             break 
     rdd_traffic = sc.parallelize(list_aux)
     rdd_traffic_clean = main_clean(rdd_traffic)
     main_db(rdd_traffic_clean)     #getlistavion()
-    #viz(dictRadarsByAvion('JAF3ML'), 'JAF3ML')
-    print("try get pandas dataframe : ")
-    pandas=getPacketsByPlane("TOM97V")
-    print(pandas)
-    viz(dictRadarsByAvion('TOM97V'), 'TOM97V')
+
+
+    viz(dictRadarsByAvion(id_plane), id_plane)
 
     
 
