@@ -1,0 +1,30 @@
+<html>
+	<head>
+		<title>Visualization</title>
+		<link rel="stylesheet" href="viz-client.css" type="text/css"> 
+	</head>
+	<body style="padding: 2em; color: #484848; font-family: arial,sans-serif;">
+		<div>
+			<div>
+				<div style="display: inline-block;"><h1>Visualization</h1></div><div id="loading"><img src="loading.gif" /></div>
+				<h4>Choose parameters</h4>
+			</div>
+		</div>
+		<div>
+			<div id="container1">
+				<label for="startDate">Start date :</label>
+				<input class="control" type="datetime-local" id="startDate" name="startDate" value="2019-01-01T08:00"><br />
+				<label for="endDate">End date :</label>
+				<input class="control" type="datetime-local" id="endDate" name="endDate" value="2019-01-02T08:00"><br />
+				<button class="control" onclick="retrievePlanesRadars()">Retrieve planes and radars</button><br />
+				<button class="control" onclick="makeReportType1()">Make report type 1</button><br />
+				<button class="control" onclick="makeReportType2()">Make report type 2</button><br />
+			</div>
+			<div id="container2">
+				<div id="radarList">
+				</div>
+			</div>
+		</div>
+		<script src="viz-client.js"></script>
+	</body>
+</html>

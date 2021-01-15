@@ -1,0 +1,34 @@
+#container1 {
+	width: 20em;
+	text-align: right;	
+    display: inline-block;
+}
+
+#container2 {
+	margin-left: 5em;
+	border: solid 1px gray;
+	width: 20em;
+    display: inline-block;
+}
+
+input {
+	margin: 1em;
+}
+
+button {
+	margin: 0.4em;
+	padding: 0.4em;
+	width: 100%;
+}
+
+#loading {
+	display: none;
+}
+
+#loading img {
+	width: 35px;
+	height: 35px;
+	top: 0.1em;
+    left: 1em;
+    position: relative;
+}
