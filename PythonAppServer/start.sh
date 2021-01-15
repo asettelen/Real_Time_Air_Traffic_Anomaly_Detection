@@ -1,0 +1,1 @@
+uwsgi --touch-reload=/home/user/apps/viz/reload.ini --socket 0.0.0.0:50001 --pro     tocol=http -w wsgi &
