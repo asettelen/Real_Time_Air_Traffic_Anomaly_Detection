@@ -289,17 +289,15 @@ def main():
         i = i + 1
         #print(data.decode("UTF-8").split(","))
         list_aux.append(data.decode("UTF-8").split(","))
-
-        rdd_traffic = sc.parallelize(list_aux)
-        rdd_traffic_clean = main_clean(rdd_traffic)
-        main_db(rdd_traffic_clean) 
-        
-        if not(i % 10):
+       
+        if not(i % 10000):
             print(i)
             
-        if (i==100): 
+        if (i==100000): 
             break 
-    #getlistavion()
+    rdd_traffic = sc.parallelize(list_aux)
+    rdd_traffic_clean = main_clean(rdd_traffic)
+    main_db(rdd_traffic_clean)     #getlistavion()
     #viz(dictRadarsByAvion('JAF3ML'), 'JAF3ML')
     print("try get pandas dataframe : ")
     pandas=getPacketsByPlane("TOM97V")
