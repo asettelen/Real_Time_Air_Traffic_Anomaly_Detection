@@ -434,46 +434,10 @@ def main():
                 
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
-                #pred(var='CGS')
+                pred(var='CGS')
                 #pred(var='CHdg')
                 #pred(var='FL')
 
-                traffic_for_m = traffic_df_explicit.select(
-                     traffic_df_explicit['TID'],
-                     traffic_df_explicit['DST'],                    
-                     traffic_df_explicit['TS'].cast(IntegerType()).alias('ds'), 
-                     traffic_df_explicit['CGS'].alias('y'))\
-                   .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
-                   .groupBy('TID', 'DST')\
-                   .agg(collect_list(struct('ds', 'y')).alias('data'))\
-                   .rdd.map(lambda r: transform_data_m(r))\
-                       .map(lambda d: partition_data_m(d))\
-                       .filter(lambda d: len(d['train_data']) > 2)\
-                       .map(lambda d: create_model_m(d))\
-                       .map(lambda d: train_model_m(d))\
-                       .map(lambda d: make_forecast_m(d))\
-                       .map(lambda d: reduce_data_scope_m(d))\
-                       .flatMap(lambda d: expand_predictions_m(d))\
-        
-                traffic_for_m.cache()
-            
-                df_for_m = spark.createDataFrame(traffic_for_m, schema_for_m)
-                
-                #thread
-                
-                #TH = Thread(target = forecast_from_spark, args=(df_for_m,))
-                #TH.start()
-                
-                #TH = Thread(target = forecast_from_spark)
-                
-                        
-                #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les 
-                #anciennes
-                df_for_m.show()
-                #envoie de y et de la prédiction 
-                #pour chaque ligne du df 
-                    #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)           
-                ###
             
                 #Réinitialisation du compteur
                 cmpt_tram=0
