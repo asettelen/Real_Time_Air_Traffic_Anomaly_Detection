@@ -435,8 +435,8 @@ def main():
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
                 pred(var='CGS')
-                #pred(var='CHdg')
-                #pred(var='FL')
+                pred(var='CHdg')
+                pred(var='FL')
 
             
                 #Réinitialisation du compteur
