@@ -28,6 +28,7 @@ from pyspark.sql.functions import collect_list, struct, to_timestamp
 from time import sleep
 import requests
 import mysql.connector as mconn
+import sys
 
 
 #Remove tuple with len !=14
@@ -420,7 +421,17 @@ def main():
     list_aux = [] 
     cmpt_tram = 0        
 
-    response = requests.get('http://192.168.37.142:50005/stream/2019-05-04-12:00:00/2019-05-04-16:00:00', stream=True)
+    date1=str(sys.argv[1])
+    date2=str(sys.argv[2])
+
+    print("Start date : ",date1)
+    print("End date : ",date2)
+
+    print("--Start get requests --")
+    
+    #response = requests.get('http://192.168.37.142:50005/stream/2019-05-04-12:00:00/2019-05-04-16:00:00', stream = True)
+    response = requests.get('http://192.168.37.142:50005/stream/'+date1+'/'+date2, stream = True)    
+
     #type(response)
 
     #Faire la même chose pour chdg et fl 
@@ -518,7 +529,8 @@ def main():
         
         if(not(i%1000)):
             print(i)
-            
+
+        #A enlever si on souhaite avoir toutes les données de la date1 à la date2    
         if (i==100000): break 
 
 if __name__== '__main__':
