@@ -582,9 +582,9 @@ def main():
                 
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
-                pred(var='CGS',list_TID,list_SRC)
-                pred(var='CHDG',list_TID,list_SRC)
-                pred(var='FL',list_TID,list_SRC)
+                pred('CGS',list_TID,list_SRC)
+                pred('CHDG',list_TID,list_SRC)
+                pred('FL',list_TID,list_SRC)
 
             
                 #Réinitialisation du compteur
