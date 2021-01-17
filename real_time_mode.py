@@ -24,7 +24,7 @@ import math
 from threading import Thread
 import time
 from pyspark.sql.functions import collect_list, struct, to_timestamp
-from datetime import datetime
+#from datetime import datetime
 from time import sleep
 import requests
 import mysql.connector as mconn
@@ -337,7 +337,7 @@ def forecast_from_spark(df, var):
     #envoie de y et de la prédiction 
     for line in df.filter(" y IS NULL").collect():
         print("pred : ",line)
-        insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+        insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=float(line[2]), y='NULL', 
                  yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
     
     disconnect('activus')
