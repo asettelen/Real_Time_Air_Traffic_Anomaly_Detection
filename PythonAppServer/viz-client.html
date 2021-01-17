@@ -5,23 +5,29 @@
 	</head>
 	<body style="padding: 2em; color: #484848; font-family: arial,sans-serif;">
 		<div>
-			<div>
-				<div style="display: inline-block;"><h1>Visualization</h1></div><div id="loading"><img src="loading.gif" /></div>
-				<h4>Choose parameters</h4>
-			</div>
-		</div>
-		<div>
 			<div id="container1">
+				<div>
+					<div style="display: inline-block;"><h1>Visualization</h1></div><div id="loading"><img src="loading.gif" /></div>
+					<h4>Choose parameters</h4>
+				</div>
 				<label for="startDate">Start date :</label>
 				<input class="control" type="datetime-local" id="startDate" name="startDate" value="2019-01-01T08:00"><br />
 				<label for="endDate">End date :</label>
 				<input class="control" type="datetime-local" id="endDate" name="endDate" value="2019-01-02T08:00"><br />
-				<button class="control" onclick="retrievePlanesRadars()">Retrieve planes and radars</button><br />
-				<button class="control" onclick="makeReportType1()">Make report type 1</button><br />
-				<button class="control" onclick="makeReportType2()">Make report type 2</button><br />
+				<button class="control" onclick="startBatch()">Start batch on selected period</button><br />
+				<button class="control" onclick="startRealtime()">Start realtime on selected period</button><br />
+				<button class="control" onclick="stop()">Stop</button><br />
+				<button class="control" id="btnMakeReportType1" onclick="makeReport('type1')" disabled>Make report type 1</button><br />
+				<button class="control" id="btnMakeReportType2" onclick="makeReport('type2')" disabled>Make report type 2</button><br />
 			</div>
 			<div id="container2">
+				<h4>Radars</h4>
 				<div id="radarList">
+				</div>
+			</div>
+			<div id="container3">
+				<h4>Planes</h4>
+				<div id="planeList">
 				</div>
 			</div>
 		</div>

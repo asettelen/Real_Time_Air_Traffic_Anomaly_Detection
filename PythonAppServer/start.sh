@@ -1,1 +1,1 @@
-uwsgi --touch-reload=/home/user/apps/viz/reload.ini --socket 0.0.0.0:50001 --pro     tocol=http -w wsgi &
+uwsgi --enable-threads --processes 5 --touch-reload=/home/user/apps/viz/reload.ini --socket 0.0.0.0:50001 --protocol=http -w wsgi &

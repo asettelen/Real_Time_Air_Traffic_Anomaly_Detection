@@ -3,12 +3,16 @@ var radarCount = 0;
 
 var guiEnabled = true;
 
-function enableGUI() {
+function enableGUI(reportEnabled) {
 	if(!guiEnabled) {
 		guiEnabled = true;
 		controls = document.getElementsByClassName('control');
 		for(var i = 0; i < controls.length; i++) {
 			controls[i].disabled = false;
+		}
+		if(!reportEnabled) {
+			document.getElementById('btnMakeReportType1').disabled = true;
+			document.getElementById('btnMakeReportType2').disabled = true;
 		}
 		document.getElementById('loading').style.display = 'none';
 	}
@@ -25,14 +29,14 @@ function disableGUI() {
 	}
 }
 
-function retrievePlanesRadars() {
+function startBatch() {
 	disableGUI();
 	args = {};
-	args['action'] = 'listPlanesRadars';
+	args['action'] = 'startBatch';
 	args['startDate'] = new Date(document.getElementById('startDate').value).getTime();
 	args['endDate'] = new Date(document.getElementById('endDate').value).getTime();
 	callback = function(response) {
-		enableGUI();
+		enableGUI(true);
 		response = response.split('|');
 		planes = response[0].split(',');
 		radars = response[1].split(',');
@@ -40,16 +44,44 @@ function retrievePlanesRadars() {
 		radarCount = radars.length;
 		content = '';
 		for(var i = 0; i < radars.length; i++) {			
-			content += '<input class="control" type="checkbox" id="radar' + i + '" value="' + radars[i] + '" /><label for="radar' + i + '">' + radars[i] + '</label><br />';
+			content += '<div><input class="control" type="checkbox" id="radar' + i + '" value="' + radars[i] + '" /><label for="radar' + i + '">' + radars[i] + '</label><br /></div>';
 		}
 		document.getElementById('radarList').innerHTML = content;
+		content = '';
+		for(var i = 0; i < planes.length; i++) {			
+			content += '<div><input class="control" type="checkbox" id="plane' + i + '" value="' + planes[i] + '" /><label for="plane' + i + '">' + planes[i] + '</label><br /></div>';
+		}
+		document.getElementById('planeList').innerHTML = content;
 	}
 	xhrGET("http://192.168.37.152/viz/", args, callback);
 }
 
-function makeReportType1() {
+function startRealtime() {
+	
+}
+
+function stop() {
+	disableGUI();
+	args = {};
+	args['action'] = 'stop';
+	callback = function(response) {
+		enableGUI(false);
+	}
+	xhrGET("http://192.168.37.152/viz/", args, callback);	
+}
+
+function makeReport(type) {
 	var planes = '';
 	var radars = '';
+	for(var i = 0; i < planeCount; i++) {
+		var checkbox = document.getElementById('plane' + i);
+		if(checkbox.checked) {
+			planes += checkbox.value + ',';
+		}
+	}
+	if(planes.length > 0) {
+		planes = planes.substr(0, planes.length - 1);
+	}
 	for(var i = 0; i < radarCount; i++) {
 		var checkbox = document.getElementById('radar' + i);
 		if(checkbox.checked) {
@@ -62,20 +94,14 @@ function makeReportType1() {
 	disableGUI();
 	args = {};
 	args['action'] = 'makeReport';
-	args['type'] = 'type1';
-	args['startDate'] = new Date(document.getElementById('startDate').value).getTime();
-	args['endDate'] = new Date(document.getElementById('endDate').value).getTime();
+	args['type'] = type;
 	args['filterPlane'] = planes;
 	args['filterRadar'] = radars;
 	callback = function(response) {
-		enableGUI();
+		enableGUI(true);
 		window.open(response, '_blank');
 	}
 	xhrGET("http://192.168.37.152/viz/", args, callback);
-}
-
-function makeReportType2() {
-	
 }
 
 function xhrGET(url, args, callback) {

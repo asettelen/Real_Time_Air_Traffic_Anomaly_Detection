@@ -6,9 +6,26 @@
 
 #container2 {
 	margin-left: 5em;
-	border: solid 1px gray;
-	width: 20em;
     display: inline-block;
+}
+
+#container2 > div {
+	border: solid 1px gray;
+    overflow: auto;
+    height: 16em;
+	width: 15em;
+}
+
+#container3 {
+	margin-left: 5em;
+    display: inline-block;
+}
+
+#container3 > div {
+	border: solid 1px gray;
+    overflow: auto;
+    height: 16em;
+	width: 15em;
 }
 
 input {

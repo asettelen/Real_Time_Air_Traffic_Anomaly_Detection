@@ -22,6 +22,10 @@ import itertools
 import datetime
 import codecs
 import urllib
+import time
+from threading import Thread
+from datetime import datetime
+import errno
 
 def reportAppendHTML(reportDir, content):
 	filename = reportDir + "/report.html"	
@@ -39,79 +43,112 @@ def reportAppendFigure(reportDir, reportDirUrl, figName, legend = None):
 		file.write("<div style=\"display: inline-block; width: 100%; font-weight: bold;\">" + legend + "</div>\n")
 	file.write("</div>\n")
 	file.close()
-
-def processRequest(reportKey, args):
-	reportDir = "../../static/reports/" + reportKey
-	reportDirUrl = "http://192.168.37.152/static/reports/" + reportKey
-	os.mkdir(reportDir)
+	
+def waitForRequests(args):
+	try:
+		os.mkfifo("mypipe")
+	except OSError as oe: 
+		if oe.errno != errno.EEXIST:
+			raise
+	while(1):
+		time.sleep(1)
+		print("Opening FIFO...")
+		str = ""
+		with open("mypipe") as fifo:
+			print("FIFO opened")
+			while True:
+				data = fifo.read()
+				if len(data) == 0:
+					print("Writer closed")
+					break
+				str += data
+		print("Fifo read " + str)
+		query = str		
+		query2 = query.split('&')
+		args = {}
+		for i in range(len(query2)):
+			c = query2[i].split("=")
+			args[c[0]] = urllib.parse.unquote(c[1])
+		action = args['action']
+		if action == "makeReport":
+			now = datetime.now()
+			reportKey = now.strftime("%Y-%m-%d-%H-%M-%S")
+			reportDir = "../../static/reports/" + reportKey
+			reportDirUrl = "http://192.168.37.152/static/reports/" + reportKey
+			os.mkdir(reportDir)
+			
+			reportType = args['type']
+			filterPlane = args['filterPlane']
+			filterRadar = args['filterRadar']
+			
+			if reportType == "type1":
+			
+				# récupération des données puis création des graphiques
+				plt.plot([1,2,4,5,3,2,6,5,9,8,5,5,5,5,1,2,3,6,5,4,7,8,9,6,5,4,12,3])
+				plt.savefig(reportDir + "/fig1.png")
+				
+				
+				# génration du rapport
+				title = "Report"
+				reportAppendHTML(reportDir, "<html><head><title>" + title + "</title></head><body style=\"padding: 2em; color: #484848; font-family: arial,sans-serif;\">\n")
+				reportAppendHTML(reportDir, "<h1>Report</h1>\n")
+				reportAppendHTML(reportDir, "<h4>Here is the requested report with 8 graphs :</h4>\n")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 1")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 2")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 3")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 4")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 5")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png")
+				reportAppendFigure(reportDir, reportDirUrl, "fig1.png")
+				reportAppendHTML(reportDir, "</body></html>")
+				
+				response = reportDirUrl + "/report.html"
+		
+				
+			elif reportType == "type2":
+				pass
+				
+			file = open("event.out", "w") 
+			file.write(response)
+			file.close()
+				
+def processRequest(name):
 	
 	# exemple d'utilisation (il  faut coder les caractères spéciaux pour l'url)
-	# http://192.168.37.152/viz/?action=listPlanesRadars&startDate=1000000&endDate=2000000
-	# http://192.168.37.152/viz/?action=makeReport&type=type1&startDate=1000000&endDate=2000000&filterPlane=AAAA&filterRadar=all
+	# http://192.168.37.152/viz/?action=startBatch&startDate=1000000&endDate=2000000
+	# http://192.168.37.152/viz/?action=makeReport&type=type1&filterPlane=AAAA&filterRadar=all
 	
 	
 	startDate = args['startDate']
 	endDate = args['endDate']
 	action = args['action']
 	
-	if action == "listPlanesRadars":
+	if action == "startBatch":
+		response = "AAAA,BBBB,CCCC,AAAA,BBBB,CCCC,AAAA,BBBB,CCCC,AAAA,BBBB,CCCC,AAAA,BBBB,CCCC,AAAA,BBBB,CCCC,AAAA,BBBB,CCCC,AAAA,BBBB,CCCC|00:1B:44:11:3A:B7,00:1B:44:11:3A:B8,00:1B:44:11:3A:B7,00:1B:44:11:3A:B8,00:1B:44:11:3A:B7,00:1B:44:11:3A:B8,00:1B:44:11:3A:B7,00:1B:44:11:3A:B8,00:1B:44:11:3A:B7,00:1B:44:11:3A:B8,00:1B:44:11:3A:B7,00:1B:44:11:3A:B8,00:1B:44:11:3A:B7,00:1B:44:11:3A:B8,00:1B:44:11:3A:B7,00:1B:44:11:3A:B8"
+		thread = Thread(target = waitForRequests, args = ("", ))
+		thread.start()
 		
-		response = "AAAA,BBBB,CCCC|00:1B:44:11:3A:B7,00:1B:44:11:3A:B8"
-		
-		
-	elif action == "makeReport":
-		reportType = args['type']
-		filterPlane = args['filterPlane']
-		filterRadar = args['filterRadar']
-		
-		if reportType == "type1":
-		
-			# récupération des données puis création des graphiques
-			plt.plot([1,2,4,5,3,2,6,5,9,8,5,5,5,5,1,2,3,6,5,4,7,8,9,6,5,4,12,3])
-			plt.savefig(reportDir + "/fig1.png")
-			
-			
-			# génration du rapport
-			title = "Report"
-			reportAppendHTML(reportDir, "<html><head><title>" + title + "</title></head><body style=\"padding: 2em; color: #484848; font-family: arial,sans-serif;\">\n")
-			reportAppendHTML(reportDir, "<h1>Report</h1>\n")
-			reportAppendHTML(reportDir, "<h4>Here is the requested report with 8 graphs :</h4>\n")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 1")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 2")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 3")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 4")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png", "Figure 5")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png")
-			reportAppendFigure(reportDir, reportDirUrl, "fig1.png")
-			reportAppendHTML(reportDir, "</body></html>")
-			
-			response = "C bon sa a marcher, l'argument startDate vaut : " + str(startDate)
-			response = reportDirUrl + "/report.html"
-	
-			
-		elif reportType == "type2":
-			pass
+	elif action == "startRealtime":
+		response = ""
+		pass
 	
 	return response
 	
 
-
-
-
 print("")
 print("------------------ service.py running... -------------------")
+print(sys.argv[1])
 query = sys.argv[1].split("&")
-reportKey = sys.argv[2]
-filename = reportKey + ".tmp"
+filename = "event.out"
 args = {}
 for i in range(len(query)):
-        c = query[i].split("=")
-        args[c[0]] = urllib.parse.unquote(c[1])
+	c = query[i].split("=")
+	args[c[0]] = urllib.parse.unquote(c[1])
 for x in args:
-        print(x + " = " + args[x])	
-response = processRequest(reportKey, args)
-file = open(filename, "w")
+	print(x + " = " + args[x])	
+response = processRequest(args)
+file = open("event.out", "w") 
 file.write(response)
 file.close()
 print("------------------ service.py finished   -------------------")
