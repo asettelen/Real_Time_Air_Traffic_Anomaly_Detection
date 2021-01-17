@@ -394,7 +394,7 @@ def insert_table_fields(table_name, conn, tid, dst, ds, src, cat, sac, sic, tod,
 #---End SQL functions
 
 
-def check_TID_or_SRC_in_line(line):
+def check_TID_or_SRC_in_line(list_TID,list_SRC,line):
     #check if TID in line
     isTidInLine=False
     if len(list_TID)!=0:
@@ -553,7 +553,7 @@ def main():
         list_aux.append(ligne)
         
         #Pour l'avion et le radar considere
-        if(check_TID_or_SRC_in_line(ligne)):
+        if(check_TID_or_SRC_in_line(list_TID,list_SRC,ligne)):
             #compteur pour le nombre de tram   
             #print(ligne)
             
