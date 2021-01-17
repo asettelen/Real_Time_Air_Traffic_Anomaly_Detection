@@ -24,6 +24,10 @@ import math
 from threading import Thread
 import time
 from pyspark.sql.functions import collect_list, struct, to_timestamp
+from datetime import datetime
+from time import sleep
+import requests
+import mysql.connector as mconn
 
 
 #Remove tuple with len !=14
@@ -328,12 +332,50 @@ def forecast_from_spark(df, var):
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
     #df.show()
     #df_for_m.filter(" y == 'NaN'").show() et et transformer y en cgs
-    print("Try prediction")
-    print(df.select('*').withColumnRenamed('y', var).show())
-    print("End prediction")
+    #print(df.select('*').withColumnRenamed('y', var).show())
+    
     #envoie de y et de la prédiction 
+    for line in df.filter(" y IS NULL").collect():
+        print("pred : ",line)
+        insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+                 yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+    
+    disconnect('activus')
+
     #pour chaque ligne du df 
         #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
+
+
+
+#---SQL functions
+   
+def connect(database_name):
+    conn = mconn.connect(host="192.168.37.86", port=3306, user="azerty", password="azerty", database=database_name)
+    return conn
+
+
+def query_from_table(table_name="tabl1", database_name="test"):
+    conn = mconn.connect(host="192.168.37.86", port=3306, user="azerty", password="azerty", database=database_name)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM %s;"%(table_name))
+    rows = cur.fetchall()
+    conn.close()
+    for row in rows:
+        print(row)
+        
+def insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper):
+    cur = conn.cursor()
+    #print("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
+    cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', y, yhat, yhat_lower, yhat_upper))
+    #cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, tid, dst, ds, float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
+    conn.commit()
+    
+def disconnect(database_name):
+    mconn.connect(host="192.168.37.86", port=3306, user="azerty", password="azerty", database=database_name).close()
+
+#---End SQL functions
+
+
 
 def main():
     
@@ -434,9 +476,9 @@ def main():
                 
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
-                pred(var='CGS')
-                pred(var='CHdg')
-                pred(var='FL')
+                #pred(var='CGS')
+                pred(var='CHDG')
+                #pred(var='FL')
 
             
                 #Réinitialisation du compteur
@@ -459,14 +501,15 @@ def main():
             
                 #spark.createDataFrame(traffic_for_m, schema_for_m).show()
             
-            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
-                'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
-            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
-                'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
+            #print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
+            #    'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
+            #print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
+            #    'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CHdg': [CHdg], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             
-                #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
+            insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            disconnect('activus')
                 
         
         if(not(i%1000)):
@@ -476,3 +519,4 @@ def main():
 
 if __name__== '__main__':
     main()
+
