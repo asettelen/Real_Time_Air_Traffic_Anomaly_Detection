@@ -476,9 +476,9 @@ def main():
                 
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
-                #pred(var='CGS')
+                pred(var='CGS')
                 pred(var='CHDG')
-                #pred(var='FL')
+                pred(var='FL')
 
             
                 #Réinitialisation du compteur
@@ -501,14 +501,18 @@ def main():
             
                 #spark.createDataFrame(traffic_for_m, schema_for_m).show()
             
-            #print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
-            #    'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
-            #print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
-            #    'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
+            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
+                'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
+            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
+                'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CHdg': [CHdg], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             
             insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            disconnect('activus')
+            insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            disconnect('activus')
+            insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             disconnect('activus')
                 
         
