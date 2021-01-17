@@ -374,6 +374,15 @@ def insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper
 def disconnect(database_name):
     mconn.connect(host="192.168.37.86", port=3306, user="azerty", password="azerty", database=database_name).close()
 
+def insert_table_fields(table_name, conn, tid, dst, ds, src, cat, sac, sic, tod, tn, theta, rho, fl, cgs, chdg):
+        cur = conn.cursor()
+        #print("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
+        cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + 
+        str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', '\'' + str(src) + '\'', cat, sac, sic, 
+        '\'' + str(tod) + '\'', tn, theta, rho, fl, cgs, chdg))
+        #cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, tid, dst, ds, float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
+        conn.commit()
+        
 #---End SQL functions
 
 
@@ -499,30 +508,42 @@ def main():
             #clean et envoi de la ligne à la volée
             tid = ligne[2]
             dst = ligne[4]
-            ds = float(round(float(ligne[3])))
+            ds = str(float(round(float(ligne[3]))))   
+            src = ligne[0]
+            cat = int(ligne[1])
+            sac = float(ligne[5])
+            sic = float(ligne[6])
+            toD = ligne[7]
+            tn = float(ligne[8])
+            theta = float(ligne[9])
+            rho = float(ligne[10])
             FL = float(ligne[11])
             CGS = float(ligne[12])
             CHdg = float(ligne[13])
             yhat = None 
             yhat_lower = None
             yhat_upper = None
+        
             
             #d = {'tid': [tid], 'dst': [dst], 'ds': [ds], 'y': [y], 'yhat': [yhat], 
             #     'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}
             
                 #spark.createDataFrame(traffic_for_m, schema_for_m).show()
             
-            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
+            """print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CHdg': [CHdg], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
-            
+            """
+            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'src':[src], 'cat':[cat], 'sac':[sac], 
+                                 'sic':[sic], 'tod':[toD], 'tn':[tn], 'theta':[theta], 'rho':[rho], 
+                                 'fl':[FL], 'cgs':[CGS], 'chdg':[CHdg]}))
+            insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
+                                sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=chdg)
             insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
-            disconnect('activus')
             insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
-            disconnect('activus')
             insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             disconnect('activus')
                 
