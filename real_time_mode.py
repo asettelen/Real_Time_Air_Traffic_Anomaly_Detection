@@ -345,6 +345,7 @@ def main():
 
     spark = pyspark.sql.SparkSession.builder.appName("Spark-Dataframe-SQL").getOrCreate()
 
+    
     trafficSchema = StructType ( [StructField("SRC", StringType(), True),
                                     StructField("CAT", LongType(), True),
                                     StructField("TID", StringType(), True),
@@ -436,6 +437,7 @@ def main():
                 pred(var='CGS')
                 pred(var='CHdg')
                 pred(var='FL')
+
             
                 #Réinitialisation du compteur
                 cmpt_tram=0
