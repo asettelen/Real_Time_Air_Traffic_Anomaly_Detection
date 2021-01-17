@@ -367,7 +367,7 @@ def query_from_table(table_name="tabl1", database_name="test"):
 def insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper):
     cur = conn.cursor()
     #print("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
-    cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', y, yhat, yhat_lower, yhat_upper))
+    cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + str(tid) + '\'', '\'' + str(dst) + '\'', ds, y, yhat, yhat_lower, yhat_upper))
     #cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, tid, dst, ds, float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
     conn.commit()
     
@@ -378,7 +378,7 @@ def insert_table_fields(table_name, conn, tid, dst, ds, src, cat, sac, sic, tod,
         cur = conn.cursor()
         #print("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
         cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);"%(table_name, '\'' + 
-        str(tid) + '\'', '\'' + str(dst) + '\'', '\'' + str(ds) + '\'', '\'' + str(src) + '\'', cat, sac, sic, 
+        str(tid) + '\'', '\'' + str(dst) + '\'', ds, '\'' + str(src) + '\'', cat, sac, sic, 
         '\'' + str(tod) + '\'', tn, theta, rho, fl, cgs, chdg))
         #cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, tid, dst, ds, float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
         conn.commit()
