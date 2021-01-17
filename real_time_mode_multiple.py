@@ -334,21 +334,25 @@ def forecast_from_spark(df, var):
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
 
     #A recommenter
-    df.show()
+    #df.show()
     #df_for_m.filter(" y == 'NaN'").show() et et transformer y en cgs
     #print(df.select('*').withColumnRenamed('y', var).show())
     
     #envoie de y et de la prédiction 
 
     #----Insert
-    #A decommenter
-    """
+    
+    
     for line in df.filter(" y IS NULL").collect():
         print("pred : ",line)
-        insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=float(line[2]), y='NULL', 
-                 yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+       
+        #-----------------------------------------
+        #A decommenter
+        #-----------------------
+        """insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=float(line[2]), y='NULL', 
+                 yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])"""
     
-    disconnect('activus')"""
+    disconnect('activus')
 
     #pour chaque ligne du df 
         #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
@@ -627,6 +631,7 @@ def main():
                                  'fl':[FL], 'cgs':[CGS], 'chdg':[CHdg]}))"""
             #-----Inserts
             #A decommenter
+            print("insert pred")
             """insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
                                 sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=CHdg)
             insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
