@@ -354,14 +354,14 @@ def forecast_from_spark(df, var):
     #print(df.select('*').withColumnRenamed('y', var).show())
     
     #envoie de y et de la prédiction 
-    global nb_pred
+    global first_pred
 
-    if nb_pred==0:
+    if first_pred[var]:
         for line in df.filter(" y IS NULL").collect():
             print("Insert pred : ",line)
             insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=float(line[2]), y='NULL', 
                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
-        nb_pred=1
+        first_pred[var]=False
     else:
         i = 0
         for line in df.filter(" y IS NULL").collect():
@@ -504,8 +504,8 @@ def main():
     #             ds STRING, y FLOAT, yhat FLOAT, yhat_lower FLOAT, yhat_upper FLOAT", database_name="activus"):
 
     i = 0
-    global nb_pred
-    nb_pred=0
+    global first_pred
+    first_pred={'CGS':True,'CHDG':True,'FL':True}
 
     for data in response.iter_lines():
         #print(data.decode("UTF-8"))  
