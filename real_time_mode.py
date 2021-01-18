@@ -433,7 +433,7 @@ def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper
     '''
     cur = conn.cursor()
     cur.execute("UPDATE " + str(table_name) + " SET yhat = " + str(yhat) + ", yhat_lower = " + str(yhat_lower) + 
-      ", yhat_upper =  " + str(yhat_lower) +", DS = " + str(float(ds))
+      ", yhat_upper =  " + str(yhat_upper) +", DS = " + str(float(ds))
         + " WHERE (DS = " + str(float(ds)) + " OR DS = " + str(float(ds) - 1) + 
         " OR DS = " + str(float(ds) + 1) + ") AND y is NULL AND LTRIM(RTRIM(TID)) LIKE " + 
         TID_AUX + " AND LTRIM(RTRIM(DST)) LIKE " + DST_AUX + ";")   
