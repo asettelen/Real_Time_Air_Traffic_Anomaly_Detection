@@ -620,7 +620,7 @@ if __name__== '__main__':
     plane_selected=str(sys.argv[3])
     radar_selected=str(sys.argv[4])"""
 
-    TH=Thread(target=main,args=(date1='2019-05-04-12:00:00',date2='2019-05-04-16:00:00',plane_selected='JAF3ML',radar_selected='01:00:5e:50:01:42'))
+    TH=Thread(target=main,args=('2019-05-04-12:00:00','2019-05-04-16:00:00','JAF3ML','01:00:5e:50:01:42'))
     TH.start()
     TH.join()
     
