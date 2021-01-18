@@ -367,14 +367,14 @@ def forecast_from_spark(df, var):
         for line in df.filter(" y IS NULL").collect():
 
             if (i < 5):
-                print("update pred" + line)
+                print("update pred",line)
                 update_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
                 
                 i = i + 1
                 
             else: 
-                print("insert pred" + line)
+                print("insert pred",line)
                 insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
         
@@ -433,7 +433,7 @@ def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper
     '''
     cur = conn.cursor()
     cur.execute("UPDATE " + str(table_name) + " SET yhat = " + str(yhat) + ", yhat_lower = " + str(yhat_lower) + 
-      ", yhat_upper =  " + str(yhat_lower)
+      ", yhat_upper =  " + str(yhat_lower) +", DS = " + str(float(ds))
         + " WHERE (DS = " + str(float(ds)) + " OR DS = " + str(float(ds) - 1) + 
         " OR DS = " + str(float(ds) + 1) + ") AND y is NULL AND LTRIM(RTRIM(TID)) LIKE " + 
         TID_AUX + " AND LTRIM(RTRIM(DST)) LIKE " + DST_AUX + ";")   
