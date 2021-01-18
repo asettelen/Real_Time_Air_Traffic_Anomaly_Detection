@@ -556,8 +556,8 @@ def main():
                 
 
                 pred(var='CGS')
-                #pred(var='CHDG')
-                #pred(var='FL')
+                pred(var='CHDG')
+                pred(var='FL')
 
             
                 #Réinitialisation du compteur
@@ -601,10 +601,10 @@ def main():
                                  'sic':[sic], 'tod':[toD], 'tn':[tn], 'theta':[theta], 'rho':[rho], 
                                  'fl':[FL], 'cgs':[CGS], 'chdg':[CHdg]}))
             """
-            #insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
-             #                   sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=CHdg)
-            #insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
-            #insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
+                               sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=CHdg)
+            insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             disconnect('activus')
                 
