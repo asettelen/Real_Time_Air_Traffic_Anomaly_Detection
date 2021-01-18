@@ -29,6 +29,7 @@ from time import sleep
 import requests
 import mysql.connector as mconn
 import sys
+import subprocess as sb
 
 
 #Remove tuple with len !=14
@@ -552,7 +553,7 @@ def main(date1,date2,plane_selected,radar_selected):
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
 
-                pred(var='CGS')
+                #pred(var='CGS')
                 #pred(var='CHDG')
                 #pred(var='FL')
 
@@ -598,12 +599,12 @@ def main(date1,date2,plane_selected,radar_selected):
                                  'sic':[sic], 'tod':[toD], 'tn':[tn], 'theta':[theta], 'rho':[rho], 
                                  'fl':[FL], 'cgs':[CGS], 'chdg':[CHdg]}))
             """
-            insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
+            """insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
                                sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=CHdg)
             insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
-            disconnect('activus')
+            disconnect('activus')"""
                 
         
         if(not(i%1000)):
@@ -619,8 +620,9 @@ if __name__== '__main__':
     date2=str(sys.argv[2])
     plane_selected=str(sys.argv[3])
     radar_selected=str(sys.argv[4])"""
-
     TH=Thread(target=main,args=('2019-05-04-12:00:00','2019-05-04-16:00:00','JAF3ML','01:00:5e:50:01:42'))
     TH.start()
-    TH.join()
+    #TH.join()
+    sleep(15)
+    TH.kill()
     
