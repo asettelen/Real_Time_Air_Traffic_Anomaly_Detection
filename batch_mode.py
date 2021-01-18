@@ -248,6 +248,17 @@ def viz(dictRadar, TID):
     #sns.heatmap(data=getPacketsByPlane(TID)[['SIC', 'ToD', 'TN', 'THETA', 'FL', 'CGS', 'CHdg']].corr(), annot = True, cmap = 'Reds')
     #plt.show()
 
+#Union de rdd à la rdd globale existante
+def main_db(rdd): 
+    global traffic_df_explicit, trafficSchema, spark  
+    
+    traffic_df_explicit_aux = spark.createDataFrame(rdd, trafficSchema)
+    traffic_df_explicit = traffic_df_explicit.unionAll(traffic_df_explicit_aux)       
+    
+    traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
+    
+    traffic_df_explicit.cache()
+    
 
 def main():
     global traffic_df_explicit, trafficSchema, spark  
@@ -276,12 +287,11 @@ def main():
     traffic_df_explicit = spark.createDataFrame(spark.sparkContext.emptyRDD(),trafficSchema)
     traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
 
-    id_plane=str(sys.argv[1])
-
-    print("Get visualization for the plane ",id_plane)
+    date1=str(sys.argv[1])
+    date2=str(sys.argv[2])
 
     print("--Start get requests--")
-    response = requests.get('http://192.168.37.142:50005/stream/2019-05-04-12:00:00/2019-05-04-16:00:00', stream = True)
+    response = requests.get('http://192.168.37.142:50005/stream/'+date1+'/'+date2, stream = True)
 
     
     
@@ -302,10 +312,16 @@ def main():
             break 
     rdd_traffic = sc.parallelize(list_aux)
     rdd_traffic_clean = main_clean(rdd_traffic)
-    main_db(rdd_traffic_clean)     #getlistavion()
+    main_db(rdd_traffic_clean)     
+    
+    list_avions = getlistavion()
+    print("Liste avions : ",list_avions)
 
-
-    viz(dictRadarsByAvion(id_plane), id_plane)
+    list_radars = getlistradars()
+    print("Liste radars : ",list_radars)
+    
+    #id_plane=*LE TID choisi*
+    #viz(dictRadarsByAvion(id_plane), id_plane)
 
     
 
@@ -313,16 +329,9 @@ def getlistavion():
     QUERY = 'SELECT DISTINCT(TID) FROM global_temp.traffic'
     return spark.sql(QUERY).toPandas()
 
-#Union de rdd à la rdd globale existante
-def main_db(rdd): 
-    global traffic_df_explicit, trafficSchema, spark  
-    
-    traffic_df_explicit_aux = spark.createDataFrame(rdd, trafficSchema)
-    traffic_df_explicit = traffic_df_explicit.unionAll(traffic_df_explicit_aux)       
-    
-    traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
-    
-    traffic_df_explicit.cache()
+def getlistradars(): 
+    QUERY = 'SELECT DISTINCT(DST) FROM global_temp.traffic'
+    return spark.sql(QUERY).toPandas()
 
 
 if __name__== "__main__":
