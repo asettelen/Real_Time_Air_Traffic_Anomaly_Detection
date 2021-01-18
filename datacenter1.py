@@ -53,7 +53,8 @@ def query_from_table_files(startD,stopD):
     return files
 
 @app.route("/stream/<string:startDate>/<string:stopDate>")
-def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-19-23:59:59"):
+@app.route("/stream/<string:startDate>/<string:stopDate>/<path:batch_disabled")
+def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-19-23:59:59", batch_disabled=None):
     startD = datetime.strptime(startDate, "%Y-%m-%d-%H:%M:%S")
     stopD = datetime.strptime(stopDate, "%Y-%m-%d-%H:%M:%S")
     files = query_from_table_files(startD,stopD)
@@ -67,11 +68,12 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
                 f=open("/part1/"+fichier,"rb")
                 pcap = dpkt.pcap.Reader(f)
                 for ts, buf in pcap:
-                    if tsOld==0:
-                        tsOld=ts
-                    else:
-                        sleep(ts-tsOld)
-                        tsOld=ts
+                    if batch_disabled==None:
+                        if tsOld==0:
+                            tsOld=ts
+                        else:
+                            sleep(ts-tsOld)
+                            tsOld=ts
                     eth = dpkt.ethernet.Ethernet(buf)
                     dst = mac_addr(eth.dst)
                     if dst == '01:00:5e:50:10:c4':
@@ -153,7 +155,10 @@ def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-
             except:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect(DATACENTER2_ADDRESS)
-                sock.sendall(b'FILE:%s'%(file))
+                if batch_disabled==None:
+                    sock.sendall(b'FILE:%s'%(file))
+                else:
+                    sock.sendall(b'FILE false:%s'%(file))
                 while True:
                     line = sock.recv(1024)
                     if line != "END":

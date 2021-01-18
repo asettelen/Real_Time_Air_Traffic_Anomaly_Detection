@@ -27,7 +27,7 @@ def log(socket):
     socket.sendall(b"%s"%(LOG+"nombre d'erreurs parse:"+str(NB_PARSE_ERRORS)+"\n"))
     socket.close()
 
-def stream_from_pcap_directly(socket, file="2019-12-09-1751.pcap"):
+def stream_from_pcap_directly(socket, file="2019-12-09-1751.pcap", batch_disabled=None):
     global NB_PARSE_ERRORS
     global LOG
     tsOld = 0
@@ -35,11 +35,12 @@ def stream_from_pcap_directly(socket, file="2019-12-09-1751.pcap"):
     f = open("/add/" + fichier, "rb")
     pcap = dpkt.pcap.Reader(f)
     for ts, buf in pcap:
-        if tsOld==0:
-            tsOld=ts
-        else:
-            sleep(ts-tsOld)
-            tsOld=ts
+        if batch_disabled==None:
+            if tsOld==0:
+                tsOld=ts
+            else:
+                sleep(ts-tsOld)
+                tsOld=ts
         eth = dpkt.ethernet.Ethernet(buf)
         dst = mac_addr(eth.dst)
         if dst == '01:00:5e:50:10:c4':
@@ -138,6 +139,12 @@ if __name__=="__main__":
                 file_name = file_name.split(":")[1]
                 print("Delivering content from file: %s"%(file_name))
                 th = Thread(target=stream_from_pcap_directly, args=(datacenter2_socket, file_name))
+                th.start()
+                print("--------------------------------")
+            elif 'FILE false:' in file_name:
+                file_name = file_name.split(":")[1]
+                print("Delivering content from file: %s"%(file_name))
+                th = Thread(target=stream_from_pcap_directly, args=(datacenter2_socket, file_name, "false"))
                 th.start()
                 print("--------------------------------")
             elif 'LOG:' in file_name:
