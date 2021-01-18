@@ -383,6 +383,15 @@ def insert_table_fields(table_name, conn, tid, dst, ds, src, cat, sac, sic, tod,
         #cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, tid, dst, ds, float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
         conn.commit()
         
+def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper):
+    cur = conn.cursor()
+    cur.execute("UPDATE " + str(table_name) + " SET yhat = " + str(yhat) + ", yhat_lower = " + str(yhat_lower) + 
+      ", yhat_upper =  " + str(yhat_lower)
+        + " WHERE (DS = " + str(ds) + " OR DS = " + str(ds - 1) + 
+        " OR DS = " + str(ds + 1) + ") AND y is NULL AND LTRIM(RTRIM(TID)) LIKE " + 
+        str(tid) + "AND LTRIM(RTRIM(DST)) LIKE " + str(dst) + ";")   
+    conn.commit()
+    
 #---End SQL functions
 
 
@@ -497,8 +506,8 @@ def main():
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
                 pred(var='CGS')
-                pred(var='CHDG')
-                pred(var='FL')
+                #pred(var='CHDG')
+                #pred(var='FL')
 
             
                 #Réinitialisation du compteur
@@ -529,21 +538,23 @@ def main():
             #     'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}
             
                 #spark.createDataFrame(traffic_for_m, schema_for_m).show()
-            
-            """print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
-                'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
+
+            """print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
+                'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
+            
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CHdg': [CHdg], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
-            """
+            
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'src':[src], 'cat':[cat], 'sac':[sac], 
                                  'sic':[sic], 'tod':[toD], 'tn':[tn], 'theta':[theta], 'rho':[rho], 
                                  'fl':[FL], 'cgs':[CGS], 'chdg':[CHdg]}))
-            insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
-                                sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=CHdg)
-            insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
-            insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            """
+            #insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
+             #                   sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=CHdg)
+            #insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            #insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             disconnect('activus')
                 
