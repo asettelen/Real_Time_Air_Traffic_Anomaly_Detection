@@ -488,6 +488,8 @@ def main():
 
     date1=str(sys.argv[1])
     date2=str(sys.argv[2])
+    plane_selected=str(sys.argv[3])
+    radar_selected=str(sys.argv[4])
 
     print("Start date : ",date1)
     print("End date : ",date2)
@@ -525,7 +527,7 @@ def main():
         #ligne[4] : DST
         
         #Pour l'avion et le radar considere
-        if('DSO05LM' in ligne[2] and '01:00:5e:50:01:42' in ligne[4]):
+        if(plane_selected in ligne[2] and radar_selected in ligne[4]):
             #compteur pour le nombre de tram   
             #print(ligne)
             
