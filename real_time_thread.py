@@ -448,7 +448,7 @@ def main(date1,date2,plane_selected,radar_selected):
     print("----Start real time mode -----")
     global traffic_df_explicit, spark, schema_for_m, trafficSchema
 
-    sc = pyspark.SparkContext(appName="Spark RDD",master='spark://localhost:7077')
+    sc = pyspark.SparkContext(appName="Spark RDD",master='spark://spark-master:7077')
 
     spark = pyspark.sql.SparkSession.builder.appName("Spark-Dataframe-SQL").getOrCreate()
 
