@@ -442,13 +442,13 @@ def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper
 #---End SQL functions
 
 
-def main():
+def main(date1,date2,plane_selected,radar_selected):
     
 
     print("----Start real time mode -----")
     global traffic_df_explicit, spark, schema_for_m, trafficSchema
 
-    sc = pyspark.SparkContext(appName="Spark RDD")
+    sc = pyspark.SparkContext(appName="Spark RDD",master='spark://localhost:7077')
 
     spark = pyspark.sql.SparkSession.builder.appName("Spark-Dataframe-SQL").getOrCreate()
 
@@ -485,10 +485,6 @@ def main():
     list_aux = [] 
     cmpt_tram = 0        
 
-    date1=str(sys.argv[1])
-    date2=str(sys.argv[2])
-    plane_selected=str(sys.argv[3])
-    radar_selected=str(sys.argv[4])
 
     print("Start date : ",date1)
     print("End date : ",date2)
@@ -617,5 +613,14 @@ def main():
         if (i==100000): break 
 
 if __name__== '__main__':
-    main()
+    #main()
+    """
+    date1=str(sys.argv[1])
+    date2=str(sys.argv[2])
+    plane_selected=str(sys.argv[3])
+    radar_selected=str(sys.argv[4])"""
+
+    TH=Thread(target=main,args=(date1='2019-05-04-12:00:00',date2='2019-05-04-16:00:00',plane_selected='JAF3ML',radar_selected='01:00:5e:50:01:42'))
+    TH.start()
+    TH.join()
     
