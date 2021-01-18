@@ -329,7 +329,7 @@ def pred(var):
     TH = Thread(target = forecast_from_spark, args=(df_for_m,var))
     TH.start()
 
-def forecast_from_spark(df, var):
+"""def forecast_from_spark(df, var):
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
     #df.show()
     #df_for_m.filter(" y == 'NaN'").show() et et transformer y en cgs
@@ -346,7 +346,43 @@ def forecast_from_spark(df, var):
     #pour chaque ligne du df 
         #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
 
+"""
+def forecast_from_spark(df, var):
+     #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
+    #df.show()
+    #df_for_m.filter(" y == 'NaN'").show() et et transformer y en cgs
+    #print(df.select('*').withColumnRenamed('y', var).show())
+    
+    #envoie de y et de la prédiction 
+    global nb_pred
 
+    if nb_pred==0:
+        for line in df.filter(" y IS NULL").collect():
+            print("Insert pred : ",line)
+            insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=float(line[2]), y='NULL', 
+                    yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+        nb_pred=1
+    else:
+        i = 0
+        for line in df.filter(" y IS NULL").collect():
+
+            if (i < 5):
+                print("update pred" + line)
+                update_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+                    yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+                
+                i = i + 1
+                
+            else: 
+                print("insert pred" + line)
+                insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+                    yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+        
+    
+    disconnect('activus')
+
+    #pour chaque ligne du df 
+        #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
 
 #---SQL functions
    
@@ -382,16 +418,27 @@ def insert_table_fields(table_name, conn, tid, dst, ds, src, cat, sac, sic, tod,
         '\'' + str(tod) + '\'', tn, theta, rho, fl, cgs, chdg))
         #cur.execute("INSERT INTO %s VALUES (%s, %s, %s, %s, %s, %s, %s);"%(table_name, tid, dst, ds, float(y), float(yhat), float(yhat_lower), float(yhat_upper)))
         conn.commit()
-        
+
 def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper):
+    TID_AUX = '\'%' + str(tid).strip() + '%\'' 
+    DST_AUX = '\'%' + str(dst).strip() + '%\'' 
+    
+    '''
+    print("UPDATE " + str(table_name) + " SET yhat = " + str(yhat) + ", yhat_lower = " + str(yhat_lower) + 
+      ", yhat_upper =  " + str(yhat_lower)
+        + " WHERE (DS = " + str(float(ds)) + " OR DS = " + str(float(ds) - 1) + 
+        " OR DS = " + str(float(ds) + 1) + ") AND y is NULL AND LTRIM(RTRIM(TID)) LIKE " + 
+        TID_AUX + " AND LTRIM(RTRIM(DST)) LIKE " + DST_AUX + ";")
+    
+    '''
     cur = conn.cursor()
     cur.execute("UPDATE " + str(table_name) + " SET yhat = " + str(yhat) + ", yhat_lower = " + str(yhat_lower) + 
       ", yhat_upper =  " + str(yhat_lower)
-        + " WHERE (DS = " + str(ds) + " OR DS = " + str(ds - 1) + 
-        " OR DS = " + str(ds + 1) + ") AND y is NULL AND LTRIM(RTRIM(TID)) LIKE " + 
-        str(tid) + "AND LTRIM(RTRIM(DST)) LIKE " + str(dst) + ";")   
+        + " WHERE (DS = " + str(float(ds)) + " OR DS = " + str(float(ds) - 1) + 
+        " OR DS = " + str(float(ds) + 1) + ") AND y is NULL AND LTRIM(RTRIM(TID)) LIKE " + 
+        TID_AUX + " AND LTRIM(RTRIM(DST)) LIKE " + DST_AUX + ";")   
     conn.commit()
-    
+
 #---End SQL functions
 
 
@@ -457,6 +504,8 @@ def main():
     #             ds STRING, y FLOAT, yhat FLOAT, yhat_lower FLOAT, yhat_upper FLOAT", database_name="activus"):
 
     i = 0
+    global nb_pred
+    nb_pred=0
 
     for data in response.iter_lines():
         #print(data.decode("UTF-8"))  
@@ -505,6 +554,7 @@ def main():
                 
                 #pred(spark, traffic_df_explicit, schema_for_m)
                 
+
                 pred(var='CGS')
                 #pred(var='CHDG')
                 #pred(var='FL')
