@@ -340,10 +340,7 @@ def pred(var):
                      traffic_df_explicit[var].alias('y'))\
                    .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
                    .orderBy('ds', ascending=False)\
-                   .groupBy('TID', 'DST')
-                   
-    print(type(traffic_for_m))
-    traffic_for_m=traffic_for_m\
+                   .groupBy('TID', 'DST')\
                    .agg(collect_list(struct('ds', 'y')).alias('data'))\
                    .rdd.map(lambda r: transform_data_m(r))\
                        .map(lambda d: partition_data_m(d))\
@@ -357,7 +354,8 @@ def pred(var):
     traffic_for_m.cache()
         
     df_for_m = spark.createDataFrame(traffic_for_m, schema_for_m)
-            
+    
+    df_for_m.limit(15)
     #thread
             
     TH = Thread(target = forecast_from_spark, args=(df_for_m,var))
