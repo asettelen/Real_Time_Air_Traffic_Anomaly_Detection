@@ -383,7 +383,7 @@ def forecast_from_spark(df, var):
 """
 def forecast_from_spark(df, var):
     
-    global nb_pred 
+    global first_pred 
     #nb_pred = 1
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
     #df.show()
@@ -391,13 +391,13 @@ def forecast_from_spark(df, var):
     #print(df.select('*').withColumnRenamed('y', var).show())
     
     #envoie de y et de la prédiction 
-    if nb_pred == 0:
+    if first_pred[var]:
         for line in df.collect():
             print("insert line", line)
             insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
                  yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
             
-        nb_pred = 1 
+        first_pred[var]=False
     
     else: 
         i = 0
