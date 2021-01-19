@@ -665,7 +665,7 @@ def main():
             print(i)
 
         #A enlever si on souhaite avoir toutes les données de la date1 à la date2    
-        if (i==100000): break 
+        #if (i==100000): break 
 
 if __name__== '__main__':
     main()
