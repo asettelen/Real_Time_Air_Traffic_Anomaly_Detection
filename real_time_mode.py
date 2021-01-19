@@ -346,7 +346,7 @@ def pred(var):
     #pour chaque ligne du df 
         #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
 
-"""
+
 def forecast_from_spark(df, var):
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
     #df.show()
@@ -380,6 +380,57 @@ def forecast_from_spark(df, var):
         
     
     disconnect('activus')
+"""
+def forecast_from_spark(df, var):
+    
+    global nb_pred 
+    #nb_pred = 1
+     #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
+    #df.show()
+    #df_for_m.filter(" y == 'NaN'").show() et et transformer y en cgs
+    #print(df.select('*').withColumnRenamed('y', var).show())
+    
+    #envoie de y et de la prédiction 
+    if nb_pred == 0:
+        for line in df.collect():
+            print("insert line", line)
+            insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+                 yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+            
+        nb_pred = 1 
+    
+    else: 
+        i = 0
+        for line in df.collect():
+            
+            if line[3] != None:  
+                print("update line", line)
+                update_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+                
+                
+            else:
+                if (i < 5):
+                    print("update line", line)
+                    update_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+
+                    i = i + 1
+
+                else: 
+                    print("insert line", line)
+                    insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
+                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
+        
+    
+    disconnect('activus')
+
+    #pour chaque ligne du df 
+        #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
+
+
+
+
 
     #pour chaque ligne du df 
         #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
