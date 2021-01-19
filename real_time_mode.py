@@ -341,7 +341,7 @@ def pred(var):
                    .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
                    .orderBy('ds', ascending=False)\
                    .groupBy('TID', 'DST')\
-                   .take(15)\
+                   .limit(15)
                    .agg(collect_list(struct('ds', 'y')).alias('data'))\
                    .rdd.map(lambda r: transform_data_m(r))\
                        .map(lambda d: partition_data_m(d))\
