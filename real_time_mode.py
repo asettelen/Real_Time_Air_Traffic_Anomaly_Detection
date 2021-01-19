@@ -298,7 +298,7 @@ def expand_predictions_m(d):
             p['yhat_upper'],
         ) for i, p in data['forecast'].iterrows()
     ]
-
+"""
 def pred(var):
     
     global traffic_df_explicit, spark, schema_for_m
@@ -310,6 +310,38 @@ def pred(var):
                      traffic_df_explicit[var].alias('y'))\
                    .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
                    .groupBy('TID', 'DST')\
+                   .agg(collect_list(struct('ds', 'y')).alias('data'))\
+                   .rdd.map(lambda r: transform_data_m(r))\
+                       .map(lambda d: partition_data_m(d))\
+                       .filter(lambda d: len(d['train_data']) > 2)\
+                       .map(lambda d: create_model_m(d))\
+                       .map(lambda d: train_model_m(d))\
+                       .map(lambda d: make_forecast_m(d))\
+                       .map(lambda d: reduce_data_scope_m(d))\
+                       .flatMap(lambda d: expand_predictions_m(d))\
+        
+    traffic_for_m.cache()
+        
+    df_for_m = spark.createDataFrame(traffic_for_m, schema_for_m)
+            
+    #thread
+            
+    TH = Thread(target = forecast_from_spark, args=(df_for_m,var))
+    TH.start()"""
+
+def pred(var):
+    
+    global traffic_df_explicit, spark, schema_for_m
+    
+    traffic_for_m = traffic_df_explicit.select(
+                     traffic_df_explicit['TID'],
+                     traffic_df_explicit['DST'],                    
+                     traffic_df_explicit['TS'].cast(IntegerType()).alias('ds'), 
+                     traffic_df_explicit[var].alias('y'))\
+                   .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
+                   .orderBy('ds', ascending=False)\
+                   .groupBy('TID', 'DST')\
+                   .take(15)\
                    .agg(collect_list(struct('ds', 'y')).alias('data'))\
                    .rdd.map(lambda r: transform_data_m(r))\
                        .map(lambda d: partition_data_m(d))\
@@ -640,10 +672,11 @@ def main():
             #     'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}
             
                 #spark.createDataFrame(traffic_for_m, schema_for_m).show()
-            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
+            print("New packet, ds : ",ds)
+            """print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
 
-            """print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
+            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CHdg': [CHdg], 'yhat': [yhat], 
