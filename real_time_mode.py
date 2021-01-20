@@ -298,7 +298,7 @@ def expand_predictions_m(d):
             p['yhat_upper'],
         ) for i, p in data['forecast'].iterrows()
     ]
-"""
+
 def pred(var):
     
     global traffic_df_explicit, spark, schema_for_m
@@ -327,8 +327,8 @@ def pred(var):
     #thread
             
     TH = Thread(target = forecast_from_spark, args=(df_for_m,var))
-    TH.start()"""
-
+    TH.start()
+"""
 def pred(var):
     
     global traffic_df_explicit, spark, schema_for_m
@@ -359,7 +359,7 @@ def pred(var):
     #thread
             
     TH = Thread(target = forecast_from_spark, args=(df_for_m,var))
-    TH.start()
+    TH.start()"""
 
 """def forecast_from_spark(df, var):
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
