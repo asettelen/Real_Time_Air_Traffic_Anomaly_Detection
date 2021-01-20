@@ -522,7 +522,7 @@ def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper
         TID_AUX + " AND LTRIM(RTRIM(DST)) LIKE " + DST_AUX + ";")   
     conn.commit()
 
-def delete_from_tables():
+def delete_from_tables(conn):
     cur = conn.cursor()
     cur.execute("DELETE FROM CHDG")   
     cur.execute("DELETE FROM CGS")
@@ -602,7 +602,7 @@ def main():
     first_pred={'CGS':True,'CHDG':True,'FL':True}
 
     #Delete all elements from all tables
-    delete_from_tables()
+    delete_from_tables(connect(database_name='activus'))
 
     for data in response.iter_lines():
         #print(data.decode("UTF-8"))  
