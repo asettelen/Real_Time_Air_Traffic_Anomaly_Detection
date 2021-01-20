@@ -522,6 +522,16 @@ def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper
         TID_AUX + " AND LTRIM(RTRIM(DST)) LIKE " + DST_AUX + ";")   
     conn.commit()
 
+def delete_from_tables():
+    cur = conn.cursor()
+    cur.execute("DELETE FROM CHDG")   
+    cur.execute("DELETE FROM CGS")
+    cur.execute("DELETE FROM FL")
+    cur.execute("DELETE FROM FIELDS")
+    cur.execute("DELETE FROM INFO_TRAFFIC")
+    
+    conn.commit()
+
 #---End SQL functions
 
 
@@ -590,6 +600,9 @@ def main():
     i = 0
     global first_pred
     first_pred={'CGS':True,'CHDG':True,'FL':True}
+
+    #Delete all elements from all tables
+    delete_from_tables()
 
     for data in response.iter_lines():
         #print(data.decode("UTF-8"))  
