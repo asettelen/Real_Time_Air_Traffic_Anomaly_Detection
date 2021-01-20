@@ -299,7 +299,7 @@ def expand_predictions_m(d):
         ) for i, p in data['forecast'].iterrows()
     ]
 
-def pred(var):
+def pred(var,TID,DST):
     
     global traffic_df_explicit, spark, schema_for_m
     
@@ -308,7 +308,7 @@ def pred(var):
                      traffic_df_explicit['DST'],                    
                      traffic_df_explicit['TS'].cast(IntegerType()).alias('ds'), 
                      traffic_df_explicit[var].alias('y'))\
-                   .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
+                   .filter("TID like '%"+str(TID)+"%' and DST like '%"+str(DST)+"%'")\
                    .groupBy('TID', 'DST')\
                    .agg(collect_list(struct('ds', 'y')).alias('data'))\
                    .rdd.map(lambda r: transform_data_m(r))\
@@ -638,28 +638,7 @@ def main():
             
             cmpt_tram += 1 
             list_aux = []     
-            
-        #time series 
-        
-            #envoie de la prédiction toutes les 5 trams
-            if(cmpt_tram==5):
-                
-                #faire la prédiction sur la variable de son choix 
-                #pred(traffic_df_explicit, var='CGS')
-                #pred(traffic_df_explicit, var='CHdg')
-                #pred(traffic_df_explicit, var='FL')
-                
-                #pred(spark, traffic_df_explicit, schema_for_m)
-                
-
-                pred(var='CGS')
-                pred(var='CHDG')
-                pred(var='FL')
-
-            
-                #Réinitialisation du compteur
-                cmpt_tram=0
-                
+                            
             #Envoie de y
             #clean et envoi de la ligne à la volée
             tid = ligne[2]
@@ -704,6 +683,28 @@ def main():
             insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
+            
+
+            #time series 
+            #envoie de la prédiction toutes les 5 trams
+            if(cmpt_tram==5):
+                
+                #faire la prédiction sur la variable de son choix 
+                #pred(traffic_df_explicit, var='CGS')
+                #pred(traffic_df_explicit, var='CHdg')
+                #pred(traffic_df_explicit, var='FL')
+                
+                #pred(spark, traffic_df_explicit, schema_for_m)
+                
+                
+                pred(var='CGS',tid,dst)
+                pred(var='CHDG',tid,dst)
+                pred(var='FL',tid,dst)
+
+            
+                #Réinitialisation du compteur
+                cmpt_tram=0
+            
             disconnect('activus')
                 
         
