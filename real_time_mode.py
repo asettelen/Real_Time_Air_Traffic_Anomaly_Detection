@@ -633,12 +633,7 @@ def main():
             
             #print(rdd_traffic_clean.collect())
             main_db(rdd_traffic_clean) 
-            
-            #faire un show pour un envoi en temps réel à la base de données sql
-            
-            cmpt_tram += 1 
-            list_aux = []     
-                            
+
             #Envoie de y
             #clean et envoi de la ligne à la volée
             tid = ligne[2]
@@ -658,6 +653,33 @@ def main():
             yhat = None 
             yhat_lower = None
             yhat_upper = None
+                      
+
+            cmpt_tram += 1 
+            #reset list_aux
+            list_aux = []     
+
+             #time series 
+            #envoie de la prédiction toutes les 5 trams
+            if(cmpt_tram==5):
+                
+                #faire la prédiction sur la variable de son choix 
+                #pred(traffic_df_explicit, var='CGS')
+                #pred(traffic_df_explicit, var='CHdg')
+                #pred(traffic_df_explicit, var='FL')
+                
+                #pred(spark, traffic_df_explicit, schema_for_m)
+                
+                
+                pred('CGS',plane_selected,radar_selected)
+                pred('CHDG',plane_selected,radar_selected)
+                pred('FL',plane_selected,radar_selected)
+
+            
+                #Réinitialisation du compteur
+                cmpt_tram=0
+                            
+            
         
             
             #d = {'tid': [tid], 'dst': [dst], 'ds': [ds], 'y': [y], 'yhat': [yhat], 
@@ -685,25 +707,7 @@ def main():
             insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             
 
-            #time series 
-            #envoie de la prédiction toutes les 5 trams
-            if(cmpt_tram==5):
-                
-                #faire la prédiction sur la variable de son choix 
-                #pred(traffic_df_explicit, var='CGS')
-                #pred(traffic_df_explicit, var='CHdg')
-                #pred(traffic_df_explicit, var='FL')
-                
-                #pred(spark, traffic_df_explicit, schema_for_m)
-                
-                
-                pred(var='CGS',tid,dst)
-                pred(var='CHDG',tid,dst)
-                pred(var='FL',tid,dst)
-
-            
-                #Réinitialisation du compteur
-                cmpt_tram=0
+           
             
             disconnect('activus')
                 
