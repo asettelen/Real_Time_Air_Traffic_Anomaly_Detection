@@ -53,7 +53,7 @@ def query_from_table_files(startD,stopD):
     return files
 
 @app.route("/stream/<string:startDate>/<string:stopDate>")
-@app.route("/stream/<string:startDate>/<string:stopDate>/<path:batch_disabled")
+@app.route("/stream/<string:startDate>/<string:stopDate>/<path:batch_disabled>")
 def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-19-23:59:59", batch_disabled=None):
     startD = datetime.strptime(startDate, "%Y-%m-%d-%H:%M:%S")
     d1 = startD - timedelta(hours=4.5)
