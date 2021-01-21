@@ -29,6 +29,7 @@ def log():
     return LOG+"nombre d'erreurs parse:"+str(NB_PARSE_ERRORS)+'\n'+lg
 
 
+# Description des champs présents dans le streaming
 @app.route("/")
 def racine():
     description = "src, cat, tid, ts, dst, sac, sic, tod, tn, theta, rho, fl, cgs, chdg"
