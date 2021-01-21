@@ -187,7 +187,7 @@ def main():
     ('spark.executor.cores', '1')])
 
     sc = pyspark.SparkContext(appName="Spark RDD", 
-    master="http://spark-master:7077", conf = conf)
+    master="spark://spark-master:7077", conf = conf)
 
     spark = pyspark.sql.SparkSession.builder.appName("Spark-Dataframe-SQL").getOrCreate()
 
