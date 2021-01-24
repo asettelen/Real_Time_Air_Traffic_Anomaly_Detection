@@ -29,6 +29,11 @@ function disableGUI() {
 	}
 }
 
+function itemClicked(id) {
+	e = document.getElementById(id);
+	e.checked = !e.checked;
+}
+
 function startBatch() {
 	disableGUI();
 	args = {};
@@ -44,12 +49,14 @@ function startBatch() {
 		radarCount = radars.length;
 		content = '';
 		for(var i = 0; i < radars.length; i++) {			
-			content += '<div><input class="control" type="checkbox" id="radar' + i + '" value="' + radars[i] + '" /><label for="radar' + i + '">' + radars[i] + '</label><br /></div>';
+			content += '<div onclick="itemClicked(\'radar' + i + '\')"><input onclick="itemClicked(\'radar' + i + '\')" class="control" type="checkbox" id="radar' + i + '" value="' + radars[i].trim() + '" /><label onclick="itemClicked(\'radar' + i + '\')" for="radar' + i + '">' + radars[i].trim() + '</label></div>';
 		}
 		document.getElementById('radarList').innerHTML = content;
 		content = '';
-		for(var i = 0; i < planes.length; i++) {			
-			content += '<div><input class="control" type="checkbox" id="plane' + i + '" value="' + planes[i] + '" /><label for="plane' + i + '">' + planes[i] + '</label><br /></div>';
+		for(var i = 0; i < planes.length; i++) {	
+			tid = planes[i].split('#')[0].trim();
+			count = planes[i].split('#')[1];
+			content += '<div onclick="itemClicked(\'plane' + i + '\')"><input onclick="itemClicked(\'plane' + i + '\')" class="control" type="checkbox" id="plane' + i + '" value="' + tid + '" /><label onclick="itemClicked(\'plane' + i + '\')" for="plane' + i + '">' + tid + '</label><div style="color: blue; font-size: 11px; margin-left: 40px; padding-bottom: 0.5em;">(' + count + ' packets)</div></div>';
 		}
 		document.getElementById('planeList').innerHTML = content;
 	}

@@ -28,6 +28,10 @@
 	width: 15em;
 }
 
+#container2 > div > div:hover, #container3 > div > div:hover {
+	background: #e6f1ff;
+}
+
 input {
 	margin: 1em;
 }

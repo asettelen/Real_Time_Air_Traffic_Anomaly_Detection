@@ -11,14 +11,15 @@
 					<h4>Choose parameters</h4>
 				</div>
 				<label for="startDate">Start date :</label>
-				<input class="control" type="datetime-local" id="startDate" name="startDate" value="2019-01-01T08:00"><br />
+				<input class="control" type="datetime-local" id="startDate" name="startDate" step="1" value="2019-06-29T02:00"><br />
 				<label for="endDate">End date :</label>
-				<input class="control" type="datetime-local" id="endDate" name="endDate" value="2019-01-02T08:00"><br />
+				<input class="control" type="datetime-local" id="endDate" name="endDate" step="1" value="2019-06-29T06:00"><br />
 				<button class="control" onclick="startBatch()">Start batch on selected period</button><br />
 				<button class="control" onclick="startRealtime()">Start realtime on selected period</button><br />
 				<button class="control" onclick="stop()">Stop</button><br />
-				<button class="control" id="btnMakeReportType1" onclick="makeReport('type1')" disabled>Make report type 1</button><br />
-				<button class="control" id="btnMakeReportType2" onclick="makeReport('type2')" disabled>Make report type 2</button><br />
+				<button class="control" id="btnMakeReportType1" onclick="makeReport('type1')" disabled>Visualization - One plane N radars</button><br />
+				<button class="control" id="btnMakeReportType2" onclick="makeReport('type2')" disabled>Visualization - One radar N planes</button><br />
+				<button class="control" id="btnMakeReportType3" onclick="makeReport('type3')" disabled>Prediction</button><br />
 			</div>
 			<div id="container2">
 				<h4>Radars</h4>
