@@ -1,0 +1,45 @@
+Informations relatives cluster spark
+######################################################################################
+
+**************************************************************************************
+SWARM MANAGER
+docker swarm init --advertise-addr IP_FLOATINGc1:PORTx --data-path-addr IP_FLOATINGc1 --listen-addr 0.0.0.0:PORTx
+
+SWARM  WORKER
+docker swarm join --token <...> --advertise-addr IP_FLOATINGc2:PORTy IP_FLOATINGc1:PORTx
+
+NB: PORTx et PORTy >= 50000 (restriction INSA)
+
+**************************************************************************************
+MASTER
+docker run -dit --name spark-master --network sparknet -p 8080:8080 chasik/sparkmaster:v1
+
+SUBMIT
+docker run -it --name spark-submit -v /home/user/entry:/entry --network sparknet -p 4040:4040 chasik/sparksubmit:v1 bash
+
+WORKER1
+docker run -dit --name spark-worker1 --network sparknet -p 8081:8081 -e CORES=2 chasik/sparkworker:v1
+**************************************************************************************
+WORKER2
+docker run -dit --name spark-worker2 --network sparknet -p 8081:8081 -e CORES=2 chasik/sparkworker:v1
+
+WORKER3
+docker run -dit --name spark-worker3 --network sparknet -p 8082:8081 -e CORES=2 chasik/sparkworker:v1
+**************************************************************************************
+WORKER4
+docker run -dit --name spark-worker4 --network sparknet -p 8081:8081 -e CORES=2 chasik/sparkworker:v1
+
+WORKER5
+docker run -dit --name spark-worker5 --network sparknet -p 8082:8081 -e CORES=2 chasik/sparkworker:v1
+**************************************************************************************
+WORKER6
+docker run -dit --name spark-worker6 --network sparknet -p 8081:8081 -e CORES=2 chasik/sparkworker:v1
+
+WORKER7
+docker run -dit --name spark-worker7 --network sparknet -p 8082:8081 -e CORES=2 chasik/sparkworker:v1
+**************************************************************************************
+
+Task Submit (nœud spark-submit)
+/spark/bin/spark-submit --conf spark.executor.cores=2 --conf spark.executor.memory=5G --master spark://spark-master:7077 /spark/examples/src/main/python/<pi.py> <2000> .param2.. <.paramn..>
+
+Information: files can be put in folder "entry" in order be easily launchable in spark-submit
