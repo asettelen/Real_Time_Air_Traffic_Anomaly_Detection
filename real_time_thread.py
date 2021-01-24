@@ -29,6 +29,7 @@ from time import sleep
 import requests
 import mysql.connector as mconn
 import sys
+import subprocess as sb
 
 
 #Remove tuple with len !=14
@@ -249,7 +250,7 @@ def partition_data_m(d):
 
 def create_model_m(d):
     """Create Prophet model using each input grid parameter set."""
-    m = Prophet(interval_width=0.95)
+    m = Prophet()
     d['model'] = m
 
     return d
@@ -299,7 +300,7 @@ def expand_predictions_m(d):
         ) for i, p in data['forecast'].iterrows()
     ]
 
-def pred(var,TID,DST):
+def pred(var):
     
     global traffic_df_explicit, spark, schema_for_m
     
@@ -308,7 +309,7 @@ def pred(var,TID,DST):
                      traffic_df_explicit['DST'],                    
                      traffic_df_explicit['TS'].cast(IntegerType()).alias('ds'), 
                      traffic_df_explicit[var].alias('y'))\
-                   .filter("TID like '%"+str(TID)+"%' and DST like '%"+str(DST)+"%'")\
+                   .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
                    .groupBy('TID', 'DST')\
                    .agg(collect_list(struct('ds', 'y')).alias('data'))\
                    .rdd.map(lambda r: transform_data_m(r))\
@@ -328,38 +329,6 @@ def pred(var,TID,DST):
             
     TH = Thread(target = forecast_from_spark, args=(df_for_m,var))
     TH.start()
-"""
-def pred(var):
-    
-    global traffic_df_explicit, spark, schema_for_m
-    
-    traffic_for_m = traffic_df_explicit.select(
-                     traffic_df_explicit['TID'],
-                     traffic_df_explicit['DST'],                    
-                     traffic_df_explicit['TS'].cast(IntegerType()).alias('ds'), 
-                     traffic_df_explicit[var].alias('y'))\
-                   .filter("TID like '%DSO05LM%' and DST like '%01:00:5e:50:01:42%'")\
-                   .orderBy('ds', ascending=False)\
-                   .groupBy('TID', 'DST')\
-                   .agg(collect_list(struct('ds', 'y')).alias('data'))\
-                   .rdd.map(lambda r: transform_data_m(r))\
-                       .map(lambda d: partition_data_m(d))\
-                       .filter(lambda d: len(d['train_data']) > 2)\
-                       .map(lambda d: create_model_m(d))\
-                       .map(lambda d: train_model_m(d))\
-                       .map(lambda d: make_forecast_m(d))\
-                       .map(lambda d: reduce_data_scope_m(d))\
-                       .flatMap(lambda d: expand_predictions_m(d))\
-        
-    traffic_for_m.cache()
-        
-    df_for_m = spark.createDataFrame(traffic_for_m, schema_for_m)
-    
-    df_for_m.limit(15)
-    #thread
-            
-    TH = Thread(target = forecast_from_spark, args=(df_for_m,var))
-    TH.start()"""
 
 """def forecast_from_spark(df, var):
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
@@ -378,7 +347,7 @@ def pred(var):
     #pour chaque ligne du df 
         #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
 
-
+"""
 def forecast_from_spark(df, var):
      #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
     #df.show()
@@ -412,57 +381,6 @@ def forecast_from_spark(df, var):
         
     
     disconnect('activus')
-"""
-def forecast_from_spark(df, var):
-    
-    global first_pred 
-    #nb_pred = 1
-     #pas de show mais un filter sur les y == NAN pour n'envoyer que les forecast pour ces valeurs mais pas les anciennes
-    #df.show()
-    #df_for_m.filter(" y == 'NaN'").show() et et transformer y en cgs
-    #print(df.select('*').withColumnRenamed('y', var).show())
-    
-    #envoie de y et de la prédiction 
-    if first_pred[var]:
-        for line in df.collect():
-            print("insert line", line)
-            insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
-                 yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
-            
-        first_pred[var]=False
-    
-    else: 
-        i = 0
-        for line in df.collect():
-            
-            if line[3] != None:  
-                print("update line", line)
-                update_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
-                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
-                
-                
-            else:
-                if (i < 5):
-                    print("update line", line)
-                    update_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
-                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
-
-                    i = i + 1
-
-                else: 
-                    print("insert line", line)
-                    insert_table(var, connect(database_name='activus'), tid=line[0], dst=line[1], ds=line[2] , y='NULL', 
-                     yhat=line[4], yhat_lower=line[5], yhat_upper=line[6])
-        
-    
-    disconnect('activus')
-
-    #pour chaque ligne du df 
-        #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
-
-
-
-
 
     #pour chaque ligne du df 
         #insert_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper)
@@ -522,26 +440,16 @@ def update_table(table_name, conn, tid, dst, ds, y, yhat, yhat_lower, yhat_upper
         TID_AUX + " AND LTRIM(RTRIM(DST)) LIKE " + DST_AUX + ";")   
     conn.commit()
 
-def delete_from_tables(conn):
-    cur = conn.cursor()
-    cur.execute("DELETE FROM CHDG")   
-    cur.execute("DELETE FROM CGS")
-    cur.execute("DELETE FROM FL")
-    cur.execute("DELETE FROM FIELDS")
-    cur.execute("DELETE FROM INFO_TRAFFIC")
-    
-    conn.commit()
-
 #---End SQL functions
 
 
-def main():
+def main(date1,date2,plane_selected,radar_selected):
     
 
     print("----Start real time mode -----")
     global traffic_df_explicit, spark, schema_for_m, trafficSchema
 
-    sc = pyspark.SparkContext(appName="Spark RDD")
+    sc = pyspark.SparkContext(appName="Spark RDD",master='spark://spark-master:7077')
 
     spark = pyspark.sql.SparkSession.builder.appName("Spark-Dataframe-SQL").getOrCreate()
 
@@ -578,10 +486,6 @@ def main():
     list_aux = [] 
     cmpt_tram = 0        
 
-    date1=str(sys.argv[1])
-    date2=str(sys.argv[2])
-    plane_selected=str(sys.argv[3])
-    radar_selected=str(sys.argv[4])
 
     print("Start date : ",date1)
     print("End date : ",date2)
@@ -600,9 +504,6 @@ def main():
     i = 0
     global first_pred
     first_pred={'CGS':True,'CHDG':True,'FL':True}
-
-    #Delete all elements from all tables
-    delete_from_tables(connect(database_name='activus'))
 
     for data in response.iter_lines():
         #print(data.decode("UTF-8"))  
@@ -633,7 +534,33 @@ def main():
             
             #print(rdd_traffic_clean.collect())
             main_db(rdd_traffic_clean) 
+            
+            #faire un show pour un envoi en temps réel à la base de données sql
+            
+            cmpt_tram += 1 
+            list_aux = []     
+            
+        #time series 
+        
+            #envoie de la prédiction toutes les 5 trams
+            if(cmpt_tram==5):
+                
+                #faire la prédiction sur la variable de son choix 
+                #pred(traffic_df_explicit, var='CGS')
+                #pred(traffic_df_explicit, var='CHdg')
+                #pred(traffic_df_explicit, var='FL')
+                
+                #pred(spark, traffic_df_explicit, schema_for_m)
+                
 
+                #pred(var='CGS')
+                #pred(var='CHDG')
+                #pred(var='FL')
+
+            
+                #Réinitialisation du compteur
+                cmpt_tram=0
+                
             #Envoie de y
             #clean et envoi de la ligne à la volée
             tid = ligne[2]
@@ -653,44 +580,16 @@ def main():
             yhat = None 
             yhat_lower = None
             yhat_upper = None
-                      
-
-            cmpt_tram += 1 
-            #reset list_aux
-            list_aux = []     
-
-             #time series 
-            #envoie de la prédiction toutes les 5 trams
-            if(cmpt_tram==5):
-                
-                #faire la prédiction sur la variable de son choix 
-                #pred(traffic_df_explicit, var='CGS')
-                #pred(traffic_df_explicit, var='CHdg')
-                #pred(traffic_df_explicit, var='FL')
-                
-                #pred(spark, traffic_df_explicit, schema_for_m)
-                
-                
-                pred('CGS',plane_selected,radar_selected)
-                pred('CHDG',plane_selected,radar_selected)
-                pred('FL',plane_selected,radar_selected)
-
-            
-                #Réinitialisation du compteur
-                cmpt_tram=0
-                            
-            
         
             
             #d = {'tid': [tid], 'dst': [dst], 'ds': [ds], 'y': [y], 'yhat': [yhat], 
             #     'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}
             
                 #spark.createDataFrame(traffic_for_m, schema_for_m).show()
-            print("New packet, ds : ",ds)
-            """print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
+            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CGS': [CGS], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
 
-            print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
+            """print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'FL': [FL], 'yhat': [yhat], 
                 'yhat_lower': [yhat_lower], 'yhat_upper': [yhat_upper]}))
             
             print(pd.DataFrame(data={'tid': [tid], 'dst': [dst], 'ds': [ds], 'CHdg': [CHdg], 'yhat': [yhat], 
@@ -700,24 +599,30 @@ def main():
                                  'sic':[sic], 'tod':[toD], 'tn':[tn], 'theta':[theta], 'rho':[rho], 
                                  'fl':[FL], 'cgs':[CGS], 'chdg':[CHdg]}))
             """
-            insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
+            """insert_table_fields('FIELDS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds, src=src, cat=cat, sac=sac, 
                                sic=sic, tod=toD, tn=tn, theta=theta, rho=rho, fl=FL, cgs=CGS, chdg=CHdg)
             insert_table('CHDG', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CHdg, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('FL', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=FL, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
             insert_table('CGS', connect(database_name='activus'), tid=tid, dst=dst, ds=ds , y=CGS, yhat='NULL', yhat_lower='NULL', yhat_upper='NULL')
-            
-
-           
-            
-            disconnect('activus')
+            disconnect('activus')"""
                 
         
         if(not(i%1000)):
             print(i)
 
         #A enlever si on souhaite avoir toutes les données de la date1 à la date2    
-        #if (i==100000): break 
+        if (i==100000): break 
 
 if __name__== '__main__':
-    main()
+    #main()
+    """
+    date1=str(sys.argv[1])
+    date2=str(sys.argv[2])
+    plane_selected=str(sys.argv[3])
+    radar_selected=str(sys.argv[4])"""
+    TH=Thread(target=main,args=('2019-05-04-12:00:00','2019-05-04-16:00:00','JAF3ML','01:00:5e:50:01:42'))
+    TH.start()
+    #TH.join()
+    sleep(15)
+    TH.kill()
     

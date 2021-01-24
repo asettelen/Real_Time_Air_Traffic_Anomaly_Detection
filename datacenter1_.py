@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #encoding: utf-8
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 from threading import Thread
 import dpkt
@@ -29,7 +29,6 @@ def log():
     return LOG+"nombre d'erreurs parse:"+str(NB_PARSE_ERRORS)+'\n'+lg
 
 
-# Description des champs présents dans le streaming
 @app.route("/")
 def racine():
     description = "src, cat, tid, ts, dst, sac, sic, tod, tn, theta, rho, fl, cgs, chdg"
@@ -57,18 +56,23 @@ def query_from_table_files(startD,stopD):
 @app.route("/stream/<string:startDate>/<string:stopDate>/<path:batch_disabled>")
 def stream_from_pcap_directly(startDate="2019-04-19-00:00:00",stopDate="2019-04-19-23:59:59", batch_disabled=None):
     startD = datetime.strptime(startDate, "%Y-%m-%d-%H:%M:%S")
+    d1 = startD - timedelta(hours=4.5)
     stopD = datetime.strptime(stopDate, "%Y-%m-%d-%H:%M:%S")
-    files = query_from_table_files(startD,stopD)
+    d2 = stopD + timedelta(hours=4.5)
+    files = query_from_table_files(d1,d2)
     def generate_csv_for_all_mac(files):
         global NB_PARSE_ERRORS
         global LOG
         tsOld = 0
-        for file in files:
-            fichier=file
+        for i in range(len(files)):
+        #for file in files:
+            fichier=files[i]
             try:
                 f=open("/part1/"+fichier,"rb")
                 pcap = dpkt.pcap.Reader(f)
                 for ts, buf in pcap:
+                    if i == 0 and datetime.fromtimestamp(ts) < startD: continue
+                    elif i == len(files)-1 and datetime.fromtimestamp(ts) > stopD: continue
                     if batch_disabled==None:
                         if tsOld==0:
                             tsOld=ts

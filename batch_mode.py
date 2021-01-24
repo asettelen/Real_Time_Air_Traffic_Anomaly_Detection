@@ -21,6 +21,8 @@ import matplotlib.pyplot as plt
 import requests
 from pyspark.sql.types import *
 import sys
+import colorsys
+import random
 
 sc = pyspark.SparkContext(appName="Spark RDD")
 
@@ -179,6 +181,41 @@ def main_clean(rdd):
 
 #-----Fin Clean---------
 
+"""
+#Select specific radar on rdd
+def getPacketsByRadar(dst):
+    DST = '\'%' + dst + '%\'' 
+    QUERY = 'SELECT * FROM global_temp.traffic \
+            WHERE DST LIKE ' + str(DST)
+    #print(QUERY)
+    return spark.sql(QUERY).toPandas())"""
+
+"""#Filter packets by TID and DST (list TID OR list SRC can be empty)
+def getPacketsFiltered(list_TID,list_SRC):
+    OR_LIST_TID=''
+    if len(list_TID)!=0:
+        for k in range(len(list_TID)):
+            if k==0:
+                OR_LIST_TID+='( TID LIKE \'%' + list_TID[k] + '%\''
+            else:
+                OR_LIST_TID+=' OR TID LIKE \'%' + list_TID[k] + '%\''
+        OR_LIST_TID+=')'
+
+    OR_LIST_SRC=''
+    if len(list_SRC)!=0:
+        for k in range(len(list_SRC)):
+            if k==0 and OR_LIST_TID=='':
+                OR_LIST_SRC+='(SRC LIKE \'%' + list_SRC[k] + '%\''
+            elif k==0 and OR_LIST_TID!='':
+                OR_LIST_SRC+=' AND (SRC LIKE \'%' + list_SRC[k] + '%\'' 
+            else: 
+                OR_LIST_SRC+=' OR SRC LIKE \'%' + list_SRC[k] + '%\'' 
+        OR_LIST_SRC+=')'
+
+    QUERY = str(OR_LIST_TID)+str(OR_LIST_SRC)
+    filter_query = 'SELECT * FROM global_temp.traffic \
+            WHERE ' + QUERY
+    return(spark.sql(filter_query).toPandas())"""
 
 #Select specific plane on rdd
 def getPacketsByPlane(tid):
@@ -188,27 +225,53 @@ def getPacketsByPlane(tid):
     #print(QUERY)
     return spark.sql(QUERY).toPandas()
 
-#
-def dictRadarsByAvion(TID):
+def getPacketsByRadar(dst):
+    DST = '\'%' + dst + '%\'' 
+    QUERY = 'SELECT * FROM global_temp.traffic \
+            WHERE DST LIKE ' + str(DST)
+    #print(QUERY)
+    return spark.sql(QUERY).toPandas()
+
+def dictRadarsByAvion(TID, list_radar_aux=list()):
     df_temp = getPacketsByPlane(TID)
     list_radar = list(df_temp.groupby('DST').size().index)
     dictRadar = {}
     for dst in list_radar:
-        #dictRadar[dst] = filterByPlaneAndRadar(TID, dst) ##TOO MUCH TIME
-        dictRadar[dst] = df_temp[df_temp['DST'] == dst] 
+        if len(list_radar_aux) > 0: 
+            if dst in list_radar_aux:
+                dictRadar[dst] = df_temp[df_temp['DST'] == dst]
+        else: 
+            dictRadar[dst] = df_temp[df_temp['DST'] == dst]
     return dictRadar
 
-import colorsys
-import random
-colorsys.hsv_to_rgb(359,100,100)
-def randomColor(i, m):
-    return rgb_to_hex(colorsys.hsv_to_rgb(float(i) / float(m), 1, 1))
-def rgb_to_hex(rgb):
-    rgbInt = (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
-    return '#%02x%02x%02x' % rgbInt
+def dictPlanesByRadar(DST, list_planes_aux=list()):
+    df_temp = getPacketsByRadar(DST)
+    list_planes = list(df_temp.groupby('TID').size().index)
+    dictPlanes = {}
+    for tid in list_planes:
+        if len(list_planes_aux) > 0:  
+            if tid != '' and tid.strip() in list_planes_aux:
+                #dictRadar[dst] = filterByPlaneAndRadar(TID, dst) ##TOO MUCH TIME
+                #print(tid)
+                dictPlanes[tid] = df_temp[df_temp['TID'] == tid]
+        else: 
+            dictPlanes[tid] = df_temp[df_temp['TID'] == tid]
+    return dictPlanes
 
-def plotRadar(dictRadar, var=None):
-    num_png=0
+
+        
+"""def viz(dictRadar, TID):
+    print("Start function viz \n")
+    plotRadar(dictRadar)
+    #sns.pairplot(data=getPacketsByPlane(TID), vars=['SAC', 'SIC', 'ToD', 'TN', 'THETA', 'RHO', 'FL', 'CGS', 'CHdg'])
+    #plt.show()
+    
+    #sns.heatmap(data=getPacketsByPlane(TID)[['SIC', 'ToD', 'TN', 'THETA', 'FL', 'CGS', 'CHdg']].corr(), annot = True, cmap = 'Reds')
+    #plt.show()"""
+
+"""
+def plotRadar(dictRadar, var=None,nb_plot_done):
+    num_png=nb_plot_done
     if var == None:
         for var in list(dictRadar[list(dictRadar.keys())[0]].columns):
             i, m = 0, len(dictRadar.keys())
@@ -219,8 +282,6 @@ def plotRadar(dictRadar, var=None):
             plt.ylabel(var)
             print("Saving plot n°"+str(num_png)+" as png\n")
             plt.tight_layout()
-            #plt.draw()
-            #plt.show()
             plt.savefig('test'+str(num_png)+'.png', format="PNG")
             plt.clf()
             num_png+=1
@@ -235,19 +296,53 @@ def plotRadar(dictRadar, var=None):
         plt.draw()
         plt.savefig('test'+str(num_png)+'.png', format="PNG")
         plt.clf()
+        num_png+=1"""
+def plotRadar(dictRadar, nb_plot_done):
+    num_png=nb_plot_done
+    for var in list(dictRadar[list(dictRadar.keys())[0]].columns):
+        i, m = 0, len(dictRadar.keys())
+        for dst in dictRadar.keys():
+            plt.plot(dictRadar[dst]['TS'], dictRadar[dst][var], randomColor(i, m))
+            i = i + 1
+        plt.xlabel('time(s)')
+        plt.ylabel(var)
+        print("Saving plot n°"+str(num_png)+" as png\n")
+        plt.tight_layout()
+        plt.savefig('test'+str(num_png)+'.png', format="PNG")
+        plt.clf()
         num_png+=1
+   
         
-        
-def viz(dictRadar, TID):
-    print("Start function viz \n")
-    plotRadar(dictRadar)
-    
-    #sns.pairplot(data=getPacketsByPlane(TID), vars=['SAC', 'SIC', 'ToD', 'TN', 'THETA', 'RHO', 'FL', 'CGS', 'CHdg'])
-    #plt.show()
-    
-    #sns.heatmap(data=getPacketsByPlane(TID)[['SIC', 'ToD', 'TN', 'THETA', 'FL', 'CGS', 'CHdg']].corr(), annot = True, cmap = 'Reds')
-    #plt.show()
 
+#Rajout praiplot, heatmap dans les viz ?
+def viz1(dictRadar,nb_plot_done):
+    print("Save report type 1 \n")
+    plotRadar(dictRadar,nb_plot_done)
+
+def viz2(dictRadar, nb_plot_done):
+    print("Save report type 2 \n")
+    plotRadar(dictRadar,nb_plot_done)
+
+ 
+
+colorsys.hsv_to_rgb(359,100,100)
+def randomColor(i, m):
+    return rgb_to_hex(colorsys.hsv_to_rgb(float(i) / float(m), 1, 1))
+def rgb_to_hex(rgb):
+    rgbInt = (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
+    return '#%02x%02x%02x' % rgbInt
+
+#Union de rdd à la rdd globale existante
+def main_db(rdd): 
+    global traffic_df_explicit, trafficSchema, spark  
+    
+    traffic_df_explicit_aux = spark.createDataFrame(rdd, trafficSchema)
+    traffic_df_explicit = traffic_df_explicit.unionAll(traffic_df_explicit_aux)       
+    
+    traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
+    
+    traffic_df_explicit.cache()
+    
 
 def main():
     global traffic_df_explicit, trafficSchema, spark  
@@ -276,12 +371,11 @@ def main():
     traffic_df_explicit = spark.createDataFrame(spark.sparkContext.emptyRDD(),trafficSchema)
     traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
 
-    id_plane=str(sys.argv[1])
-
-    print("Get visualization for the plane ",id_plane)
+    date1=str(sys.argv[1])
+    date2=str(sys.argv[2])
 
     print("--Start get requests--")
-    response = requests.get('http://192.168.37.142:50005/stream/2019-05-04-12:00:00/2019-05-04-16:00:00', stream = True)
+    response = requests.get('http://192.168.37.142:50005/stream/'+date1+'/'+date2, stream = True)
 
     
     
@@ -297,32 +391,49 @@ def main():
             print(i,"packets received")
             
         if (i==10000): 
-            print(i,"Packets received \n")
             print("--End of get requests--")
             break 
     rdd_traffic = sc.parallelize(list_aux)
     rdd_traffic_clean = main_clean(rdd_traffic)
-    main_db(rdd_traffic_clean)     #getlistavion()
-
-
-    viz(dictRadarsByAvion(id_plane), id_plane)
-
+    main_db(rdd_traffic_clean)     
     
+    list_planes = getlistplanes()
+    print("List planes : ",list_planes)
 
-def getlistavion(): 
+    list_radars = getlistradars()
+    print("List radars : ",list_radars)
+
+    nb_plot_done=0
+    #-----------CHOIX DE L'UTILISATEUR DES TID ET DST--------
+    # A PLACER "AVANT"
+    #On considere alors list_selected_tid, list_selected_dst
+    #list_selected_tid :[*tid1*,*tid2*] 
+    #format list_selected_dst  : (*dst1*,*dst2*) 
+    #Exemple : 
+    list_selected_tid=['BAW45MA','JAF3ML']
+    list_selected_dst=('01:00:5e:50:00:26','01:00:5e:50:00:46','01:00:5e:50:00:06','01:00:5e:50:01:42')
+    
+    #Save report type 1 
+    """
+    for tid_selected in list_selected_tid:
+        viz1(dictRadarsByAvion(tid_selected, list_radar_aux = list_selected_dst), nb_plot_done)
+        nb_plot_done+=14
+    """
+    #viz1(dictRadarsByAvion('JAF3ML', list_radar_aux = ('01:00:5e:50:01:42')), 'JAF3ML')
+
+    #Save report type 2
+    for dst_selected in list_selected_dst:
+        viz2(dictPlanesByRadar(dst_selected, list_planes_aux = list_selected_tid), nb_plot_done)
+        nb_plot_done+=14
+    #viz3(dictPlanesByRadar('01:00:5e:50:01:42'), '01:00:5e:50:01:42')
+
+def getlistplanes(): 
     QUERY = 'SELECT DISTINCT(TID) FROM global_temp.traffic'
     return spark.sql(QUERY).toPandas()
 
-#Union de rdd à la rdd globale existante
-def main_db(rdd): 
-    global traffic_df_explicit, trafficSchema, spark  
-    
-    traffic_df_explicit_aux = spark.createDataFrame(rdd, trafficSchema)
-    traffic_df_explicit = traffic_df_explicit.unionAll(traffic_df_explicit_aux)       
-    
-    traffic_df_explicit.createOrReplaceGlobalTempView('traffic')
-    
-    traffic_df_explicit.cache()
+def getlistradars(): 
+    QUERY = 'SELECT DISTINCT(DST) FROM global_temp.traffic'
+    return spark.sql(QUERY).toPandas()
 
 
 if __name__== "__main__":

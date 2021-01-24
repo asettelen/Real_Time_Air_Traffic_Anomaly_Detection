@@ -1,0 +1,17 @@
+USER: root
+PASSWORD: secret
+DATABASE NAME: activus
+-------------------------
+STREAMING COLUMNS: src, cat, tid, ts, dst, sac, sic, tod, tn, theta, rho, fl, cgs, chdg
+-------------------------
+T1: planes_trend
+
+COLUMNS: ts ; number_of_planes
+
+-----------------------
+T2: 
+
+track | theta
+
+ex. SELECT theta FROM planes_trend WHERE track=$a
+
